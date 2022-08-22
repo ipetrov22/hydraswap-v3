@@ -25,7 +25,6 @@ import Row from '../Row'
 import { Dots } from '../swap/styleds'
 import Web3Status from '../Web3Status'
 import HolidayOrnament from './HolidayOrnament'
-import NetworkSelector from './NetworkSelector'
 
 const HeaderFrame = styled.div<{ showBackground: boolean }>`
   display: grid;
@@ -324,9 +323,6 @@ export default function Header() {
       </HeaderLinks>
 
       <HeaderControls>
-        <HeaderElement>
-          <NetworkSelector />
-        </HeaderElement>
         <HeaderElement>
           {availableClaim && !showClaimPopup && (
             <UNIWrapper onClick={toggleClaimModal}>
