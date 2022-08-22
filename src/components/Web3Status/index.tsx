@@ -1,24 +1,18 @@
 // eslint-disable-next-line no-restricted-imports
-import { t, Trans } from '@lingui/macro'
+import { Trans } from '@lingui/macro'
 import { useWeb3React } from '@web3-react/core'
-import { ElementName, Event, EventName } from 'components/AmplitudeAnalytics/constants'
-import { TraceEvent } from 'components/AmplitudeAnalytics/TraceEvent'
-import { getConnection } from 'connection/utils'
-import { getIsValidSwapQuote } from 'pages/Swap'
+import useAddHydraAccExtension, { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import useHydra from 'hooks/useHydra'
 import { darken } from 'polished'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { AlertTriangle } from 'react-feather'
-import { useAppSelector } from 'state/hooks'
-import { useDerivedSwapInfo } from 'state/swap/hooks'
 import styled, { css } from 'styled-components/macro'
 
-import { useHasSocks } from '../../hooks/useSocksBalance'
-import { useToggleWalletModal } from '../../state/application/hooks'
+import { useConnectHydra, useToggleWalletModal } from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/types'
 import { shortenAddress } from '../../utils'
 import { ButtonSecondary } from '../Button'
-import StatusIcon from '../Identicon/StatusIcon'
 import Loader from '../Loader'
 import { RowBetween } from '../Row'
 import WalletModal from '../WalletModal'
@@ -117,41 +111,29 @@ function newTransactionsFirst(a: TransactionDetails, b: TransactionDetails) {
   return b.addedTime - a.addedTime
 }
 
-function Sock() {
-  return (
-    <span role="img" aria-label={t`has socks emoji`} style={{ marginTop: -4, marginBottom: -4 }}>
-      🧦
-    </span>
-  )
-}
-
 function Web3StatusInner() {
-  const { account, connector, chainId, ENSName } = useWeb3React()
-  const connectionType = getConnection(connector).type
-  const {
-    trade: { state: tradeState, trade },
-    inputError: swapInputError,
-  } = useDerivedSwapInfo()
-  const validSwapQuote = getIsValidSwapQuote(trade, tradeState, swapInputError)
-
-  const error = useAppSelector((state) => state.connection.errorByConnectionType[getConnection(connector).type])
+  const { walletExtension, hydraweb3Extension, error } = useHydra()
+  useAddHydraAccExtension(walletExtension, hydraweb3Extension)
+  const account = accountHydra?.address
 
   const allTransactions = useAllTransactions()
-
   const sortedRecentTransactions = useMemo(() => {
     const txs = Object.values(allTransactions)
     return txs.filter(isTransactionRecent).sort(newTransactionsFirst)
   }, [allTransactions])
 
   const pending = sortedRecentTransactions.filter((tx) => !tx.receipt).map((tx) => tx.hash)
-
   const hasPendingTransactions = !!pending.length
-  const hasSocks = useHasSocks()
-  const toggleWalletModal = useToggleWalletModal()
 
-  if (!chainId) {
-    return null
-  } else if (error) {
+  const toggleWalletModal = useToggleWalletModal()
+  const connectHydra = useConnectHydra()
+
+  const connectWallet = useCallback(() => {
+    toggleWalletModal()
+    connectHydra()
+  }, [toggleWalletModal, connectHydra])
+
+  if (error) {
     return (
       <Web3StatusError onClick={toggleWalletModal}>
         <NetworkIcon />
@@ -176,27 +158,18 @@ function Web3StatusInner() {
           </RowBetween>
         ) : (
           <>
-            {hasSocks ? <Sock /> : null}
-            <Text>{ENSName || shortenAddress(account)}</Text>
+            <Text>{account || shortenAddress(account)}</Text>
           </>
         )}
-        {!hasPendingTransactions && <StatusIcon connectionType={connectionType} />}
       </Web3StatusConnected>
     )
   } else {
     return (
-      <TraceEvent
-        events={[Event.onClick]}
-        name={EventName.CONNECT_WALLET_BUTTON_CLICKED}
-        properties={{ received_swap_quote: validSwapQuote }}
-        element={ElementName.CONNECT_WALLET_BUTTON}
-      >
-        <Web3StatusConnect onClick={toggleWalletModal} faded={!account}>
-          <Text>
-            <Trans>Connect Wallet</Trans>
-          </Text>
-        </Web3StatusConnect>
-      </TraceEvent>
+      <Web3StatusConnect onClick={connectWallet} faded={!account}>
+        <Text>
+          <Trans>Connect Wallet</Trans>
+        </Text>
+      </Web3StatusConnect>
     )
   }
 }

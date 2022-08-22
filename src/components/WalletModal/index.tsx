@@ -12,9 +12,8 @@ import {
 import { formatToDecimal, getTokenAddress } from 'components/AmplitudeAnalytics/utils'
 import { sendEvent } from 'components/analytics'
 import { AutoColumn } from 'components/Column'
-import { AutoRow } from 'components/Row'
 import { ConnectionType } from 'connection'
-import { getConnection, getConnectionName, getIsCoinbaseWallet, getIsInjected, getIsMetaMask } from 'connection/utils'
+import { getConnection, getConnectionName, getIsMetaMask } from 'connection/utils'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
 import { useStablecoinValue } from 'hooks/useStablecoinPrice'
 import { useCurrencyBalances } from 'lib/hooks/useCurrencyBalance'
@@ -28,21 +27,14 @@ import { useAppDispatch, useAppSelector } from 'state/hooks'
 import { updateSelectedWallet } from 'state/user/reducer'
 import { useConnectedWallets } from 'state/wallets/hooks'
 import styled from 'styled-components/macro'
-import { isMobile } from 'utils/userAgent'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { useAllTokens } from '../../hooks/Tokens'
 import { useModalIsOpen, useToggleWalletModal } from '../../state/application/hooks'
 import { ApplicationModal } from '../../state/application/reducer'
-import { ExternalLink, ThemedText } from '../../theme'
 import AccountDetails from '../AccountDetails'
-import { LightCard } from '../Card'
 import Modal from '../Modal'
-import { CoinbaseWalletOption, OpenCoinbaseWalletOption } from './CoinbaseWalletOption'
-import { FortmaticOption } from './FortmaticOption'
-import { InjectedOption, InstallMetaMaskOption, MetaMaskOption } from './InjectedOption'
 import PendingView from './PendingView'
-import { WalletConnectOption } from './WalletConnectOption'
 
 const CloseIcon = styled.div`
   position: absolute;
@@ -105,15 +97,6 @@ const UpperSection = styled.div`
     margin-top: 0;
     font-weight: 500;
   }
-`
-
-const OptionGrid = styled.div`
-  display: grid;
-  grid-gap: 10px;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
-  `};
 `
 
 const HoverText = styled.div`
@@ -307,50 +290,6 @@ export default function WalletModal({
     [dispatch, toggleWalletModal]
   )
 
-  function getOptions() {
-    const isInjected = getIsInjected()
-    const isMetaMask = getIsMetaMask()
-    const isCoinbaseWallet = getIsCoinbaseWallet()
-
-    const isCoinbaseWalletBrowser = isMobile && isCoinbaseWallet
-    const isMetaMaskBrowser = isMobile && isMetaMask
-    const isInjectedMobileBrowser = isCoinbaseWalletBrowser || isMetaMaskBrowser
-
-    let injectedOption
-    if (!isInjected) {
-      if (!isMobile) {
-        injectedOption = <InstallMetaMaskOption />
-      }
-    } else if (!isCoinbaseWallet) {
-      if (isMetaMask) {
-        injectedOption = <MetaMaskOption tryActivation={tryActivation} />
-      } else {
-        injectedOption = <InjectedOption tryActivation={tryActivation} />
-      }
-    }
-
-    let coinbaseWalletOption
-    if (isMobile && !isInjectedMobileBrowser) {
-      coinbaseWalletOption = <OpenCoinbaseWalletOption />
-    } else if (!isMobile || isCoinbaseWalletBrowser) {
-      coinbaseWalletOption = <CoinbaseWalletOption tryActivation={tryActivation} />
-    }
-
-    const walletConnectionOption =
-      (!isInjectedMobileBrowser && <WalletConnectOption tryActivation={tryActivation} />) ?? null
-
-    const fortmaticOption = (!isInjectedMobileBrowser && <FortmaticOption tryActivation={tryActivation} />) ?? null
-
-    return (
-      <>
-        {injectedOption}
-        {coinbaseWalletOption}
-        {walletConnectionOption}
-        {fortmaticOption}
-      </>
-    )
-  }
-
   function getModalContent() {
     if (walletView === WALLET_VIEWS.ACCOUNT) {
       return (
@@ -383,39 +322,6 @@ export default function WalletModal({
       )
     }
 
-    function getTermsOfService(redesignFlagEnabled: boolean) {
-      return redesignFlagEnabled ? (
-        <AutoRow style={{ flexWrap: 'nowrap', padding: '4px 16px' }}>
-          <ThemedText.BodySecondary fontSize={12}>
-            <Trans>
-              By connecting a wallet, you agree to Uniswap Labs’{' '}
-              <ExternalLink href="https://uniswap.org/terms-of-service/">Terms of Service</ExternalLink> and acknowledge
-              that you have read and understand the Uniswap{' '}
-              <ExternalLink href="https://uniswap.org/disclaimer/">Protocol Disclaimer</ExternalLink>.
-            </Trans>
-          </ThemedText.BodySecondary>
-        </AutoRow>
-      ) : (
-        <LightCard>
-          <AutoRow style={{ flexWrap: 'nowrap' }}>
-            <ThemedText.DeprecatedBody fontSize={12}>
-              <Trans>
-                By connecting a wallet, you agree to Uniswap Labs’{' '}
-                <ExternalLink style={{ textDecoration: 'underline' }} href="https://uniswap.org/terms-of-service/">
-                  Terms of Service
-                </ExternalLink>{' '}
-                and acknowledge that you have read and understand the Uniswap{' '}
-                <ExternalLink style={{ textDecoration: 'underline' }} href="https://uniswap.org/disclaimer/">
-                  Protocol Disclaimer
-                </ExternalLink>
-                .
-              </Trans>
-            </ThemedText.DeprecatedBody>
-          </AutoRow>
-        </LightCard>
-      )
-    }
-
     return (
       <UpperSection>
         <CloseIcon onClick={toggleWalletModal}>
@@ -432,8 +338,6 @@ export default function WalletModal({
                 tryActivation={tryActivation}
               />
             )}
-            {walletView !== WALLET_VIEWS.PENDING && <OptionGrid data-testid="option-grid">{getOptions()}</OptionGrid>}
-            {!pendingError && getTermsOfService(redesignFlagEnabled)}
           </AutoColumn>
         </ContentWrapper>
       </UpperSection>

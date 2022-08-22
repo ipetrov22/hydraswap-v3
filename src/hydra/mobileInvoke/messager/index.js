@@ -125,6 +125,7 @@ export function createMessager(sendHandler) {
       })
       .map(function (d) {
         fn[d] = bind(d)
+        return d
       })
     initialize()
     return Object.keys(callbacks)
