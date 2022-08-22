@@ -35,3 +35,5 @@ declare module 'd3-curve-circlecorners' {
 declare module 'babel-plugin-relay/macro' {
   export { graphql as default } from 'react-relay'
 }
+
+declare module 'hydraweb3-js'

@@ -14,9 +14,9 @@ import { useUserHasAvailableClaim } from 'state/claim/hooks'
 import { useNativeCurrencyBalances } from 'state/connection/hooks'
 import { useUserHasSubmittedClaim } from 'state/transactions/hooks'
 import { useDarkModeManager } from 'state/user/hooks'
-import styled, { useTheme } from 'styled-components/macro'
+import styled from 'styled-components/macro'
 
-import { ReactComponent as Logo } from '../../assets/svg/logo.svg'
+import HydraLogo from '../../assets/images/hydra-logo.png'
 import { ExternalLink, ThemedText } from '../../theme'
 import ClaimModal from '../claim/ClaimModal'
 import { CardNoise } from '../earn/styled'
@@ -25,7 +25,6 @@ import Row from '../Row'
 import { Dots } from '../swap/styleds'
 import Web3Status from '../Web3Status'
 import HolidayOrnament from './HolidayOrnament'
-import NetworkSelector from './NetworkSelector'
 
 const HeaderFrame = styled.div<{ showBackground: boolean }>`
   display: grid;
@@ -259,7 +258,6 @@ export default function Header() {
 
   const userEthBalance = useNativeCurrencyBalances(account ? [account] : [])?.[account ?? '']
   const [darkMode] = useDarkModeManager()
-  const { deprecated_white, deprecated_black } = useTheme()
 
   const toggleClaimModal = useToggleSelfClaimModal()
 
@@ -291,8 +289,8 @@ export default function Header() {
     <HeaderFrame showBackground={scrollY > 45}>
       <ClaimModal />
       <Title href=".">
-        <UniIcon>
-          <Logo fill={darkMode ? deprecated_white : deprecated_black} width="24px" height="100%" title="logo" />
+        <UniIcon style={{ background: darkMode ? '#fff' : 'transparent', width: 50, height: 50, borderRadius: '100%' }}>
+          <img alt="HydraChain" width={'50px'} src={HydraLogo} />
           <HolidayOrnament />
         </UniIcon>
       </Title>
@@ -325,9 +323,6 @@ export default function Header() {
       </HeaderLinks>
 
       <HeaderControls>
-        <HeaderElement>
-          <NetworkSelector />
-        </HeaderElement>
         <HeaderElement>
           {availableClaim && !showClaimPopup && (
             <UNIWrapper onClick={toggleClaimModal}>

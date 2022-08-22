@@ -1,7 +1,10 @@
+import Row from 'components/Row'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
 import React from 'react'
 import styled from 'styled-components/macro'
-import { Z_INDEX } from 'theme'
+import { HideSmall, Z_INDEX } from 'theme'
+
+import HydraGuard from '../assets/images/hydra-guard.png'
 
 export const BodyWrapper = styled.main<{ margin?: string; maxWidth?: string; redesignFlag?: boolean }>`
   position: relative;
@@ -12,8 +15,6 @@ export const BodyWrapper = styled.main<{ margin?: string; maxWidth?: string; red
   border-radius: ${({ redesignFlag }) => (redesignFlag ? '16px' : '24px')};
   border: 1px solid ${({ theme, redesignFlag }) => (redesignFlag ? theme.backgroundOutline : 'transparent')};
   margin-top: 1rem;
-  margin-left: auto;
-  margin-right: auto;
   z-index: ${Z_INDEX.deprecated_content};
   font-feature-settings: ${({ redesignFlag }) => redesignFlag && "'ss02' off"};
   box-shadow: ${({ redesignFlag }) =>
@@ -28,8 +29,21 @@ export default function AppBody({ children, ...rest }: { children: React.ReactNo
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
   return (
-    <BodyWrapper {...rest} redesignFlag={redesignFlagEnabled}>
-      {children}
-    </BodyWrapper>
+    <Row justify="center" align="center">
+      <HideSmall>
+        <img
+          alt="hydra"
+          width={200}
+          style={{ transform: 'scaleX(-1)', opacity: 0.15, marginRight: -45, marginTop: -40 }}
+          src={HydraGuard}
+        />
+      </HideSmall>
+      <BodyWrapper {...rest} redesignFlag={redesignFlagEnabled}>
+        {children}
+      </BodyWrapper>
+      <HideSmall>
+        <img alt="hydra" style={{ opacity: 0.15, marginLeft: -45, marginTop: -40 }} width={200} src={HydraGuard} />
+      </HideSmall>
+    </Row>
   )
 }
