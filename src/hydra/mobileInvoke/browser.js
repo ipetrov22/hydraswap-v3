@@ -5,7 +5,7 @@ let _postMessage = null
 const isBrowser = typeof window !== 'undefined'
 
 const { bind, define, listener, ready, fn, addEventListener, removeEventListener, isConnect } = createMessager(
-  data => isBrowser && _postMessage && _postMessage(JSON.stringify(data))
+  (data) => isBrowser && _postMessage && _postMessage(JSON.stringify(data))
 )
 
 /*Handle only the messages which are of structure rn-webview-invoke.
@@ -13,7 +13,7 @@ Ignore messages which came from other sources.
 
 Ex: In case of vimeo player, vimeo player will throw some self messages.
 These messages need to be ignored*/
-const handleMessage = message => {
+const handleMessage = (message) => {
   console.log('MESSAGE', message)
   let jsonMessage = undefined
 
@@ -39,16 +39,16 @@ if (isBrowser) {
     ready()
   } else {
     const descriptor = {
-      get: function() {
+      get() {
         return originalPostMessage
       },
-      set: function(value) {
+      set(value) {
         originalPostMessage = value
         if (originalPostMessage) {
           _postMessage = (...args) => window.postMessage(...args)
           setTimeout(ready, 50)
         }
-      }
+      },
     }
     Object.defineProperty(window, 'originalPostMessage', descriptor)
   }
@@ -61,26 +61,26 @@ if (isBrowser) {
     ready()
   } else {
     const descriptor = {
-      get: function() {
+      get() {
         return ReactNativeWebView
       },
-      set: function(value) {
+      set(value) {
         ReactNativeWebView = value
         if (ReactNativeWebView) {
           _postMessage = (...args) => window.ReactNativeWebView.postMessage(...args)
           setTimeout(ready, 50)
         }
-      }
+      },
     }
     Object.defineProperty(window, 'ReactNativeWebView', descriptor)
   }
 
   // onMessage react native
-  window.document.addEventListener('message', e => originalPostMessage && handleMessage(e.data))
+  window.document.addEventListener('message', (e) => originalPostMessage && handleMessage(e.data))
   // onMessage react-native-webview
-  window.addEventListener('message', e => ReactNativeWebView && handleMessage(e.data))
+  window.addEventListener('message', (e) => ReactNativeWebView && handleMessage(e.data))
   // onMessage react-native-webview  with android
-  window.document.addEventListener('message', e => ReactNativeWebView && handleMessage(e.data))
+  window.document.addEventListener('message', (e) => ReactNativeWebView && handleMessage(e.data))
 }
 
 export default {
@@ -89,5 +89,5 @@ export default {
   fn,
   addEventListener,
   removeEventListener,
-  isConnect
+  isConnect,
 }

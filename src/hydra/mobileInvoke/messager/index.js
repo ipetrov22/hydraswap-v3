@@ -24,7 +24,7 @@ function createPayload(command, data) {
     command,
     data,
     reply: false,
-    status: STATUS_SUCCESS
+    status: STATUS_SUCCESS,
   }
 }
 
@@ -44,7 +44,7 @@ export function createMessager(sendHandler) {
   }
 
   function define(name, func) {
-    callbacks[name] = args => func(...args)
+    callbacks[name] = (args) => func(...args)
     !needWait && sync()
     return { define, bind }
   }
@@ -63,7 +63,7 @@ export function createMessager(sendHandler) {
     if (needWait) {
       const waiting = needWait
       needWait = null
-      waiting.forEach(function(payload) {
+      waiting.forEach(function (payload) {
         sender(payload)
       })
       eventBus.emitEvent('ready')
@@ -101,10 +101,10 @@ export function createMessager(sendHandler) {
         const result = callbacks[data.command](data.data)
         if (result && result.then) {
           result
-            .then(function(d) {
+            .then(function (d) {
               reply(data, d, STATUS_SUCCESS)
             })
-            .catch(function(e) {
+            .catch(function (e) {
               reply(data, e, STATUS_FAIL)
             })
         } else {
@@ -120,10 +120,10 @@ export function createMessager(sendHandler) {
   const __sync = bind(SYNC_COMMAND)
   function _sync(defines = []) {
     defines
-      .filter(function(d) {
+      .filter(function (d) {
         return !fn[d]
       })
-      .map(function(d) {
+      .map(function (d) {
         fn[d] = bind(d)
       })
     initialize()
@@ -143,6 +143,6 @@ export function createMessager(sendHandler) {
     fn,
     addEventListener: eventBus.addEventListener,
     removeEventListener: eventBus.removeEventListener,
-    isConnect
+    isConnect,
   }
 }
