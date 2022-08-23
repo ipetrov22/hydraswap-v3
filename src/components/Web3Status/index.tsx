@@ -158,7 +158,7 @@ function Web3StatusInner() {
           </RowBetween>
         ) : (
           <>
-            <Text>{account || shortenAddress(account)}</Text>
+            <Text>{shortenAddress(account)}</Text>
           </>
         )}
       </Web3StatusConnected>
