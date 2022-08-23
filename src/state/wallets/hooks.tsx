@@ -21,28 +21,34 @@ export function useConnectedWallets(): [Wallet[], (wallet: Wallet) => void] {
 }
 
 export function useHYDRABalance(account?: Account | undefined): { [address: string]: CurrencyAmount | undefined } {
-  const getResult = (addresses: string[]): Result | undefined => {
-    if (addresses[0] === '') {
-      return undefined
-    }
-    const result: Result | undefined = []
-    const output: BigNumber = BigNumber.from(account ? account.balance : 0)
-    result[0] = output
-    result['balance'] = output
-    return result
-  }
-
-  const addresses: string[] = [account ? account.address : '']
-
-  const results = [
-    {
-      valid: true,
-      result: getResult(addresses),
-      loading: false,
-      syncing: false,
-      error: false,
+  const getResult = useCallback(
+    (addresses: string[]): Result | undefined => {
+      if (addresses[0] === '') {
+        return undefined
+      }
+      const result: Result | undefined = []
+      const output: BigNumber = BigNumber.from(account ? account.balance : 0)
+      result[0] = output
+      result['balance'] = output
+      return result
     },
-  ]
+    [account]
+  )
+
+  const addresses: string[] = useMemo(() => [account ? account.address : ''], [account])
+
+  const results = useMemo(
+    () => [
+      {
+        valid: true,
+        result: getResult(addresses),
+        loading: false,
+        syncing: false,
+        error: false,
+      },
+    ],
+    [addresses, getResult]
+  )
 
   return useMemo(
     () =>

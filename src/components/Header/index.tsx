@@ -278,10 +278,7 @@ export default function Header() {
 
   const { pathname } = useLocation()
 
-  const {
-    infoLink,
-    nativeCurrency: { symbol: nativeCurrencySymbol },
-  } = getChainInfoOrDefault(chainId)
+  const { infoLink } = getChainInfoOrDefault(chainId)
 
   // work around https://github.com/remix-run/react-router/issues/8161
   // as we can't pass function `({isActive}) => ''` to className with styled-components
