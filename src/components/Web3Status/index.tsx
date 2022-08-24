@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import { Trans } from '@lingui/macro'
-import { useWeb3React } from '@web3-react/core'
 import ConnectWalletModal from 'components/ConnectWalletModal'
 import useAddHydraAccExtension, { account as accountHydra } from 'hooks/useAddHydraAccExtension'
 import useHydra from 'hooks/useHydra'
@@ -22,7 +21,6 @@ import { shortenAddress } from '../../utils'
 import { ButtonSecondary } from '../Button'
 import Loader from '../Loader'
 import { RowBetween } from '../Row'
-import WalletModal from '../WalletModal'
 
 const Web3StatusGeneric = styled(ButtonSecondary)`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -185,22 +183,10 @@ function Web3StatusInner() {
 export default function Web3Status() {
   const connectModalOpen = useModalIsOpen(ApplicationModal.CONNECT)
   const toggleConnectModal = useToggleConnectModal()
-  const { ENSName } = useWeb3React()
-
-  const allTransactions = useAllTransactions()
-
-  const sortedRecentTransactions = useMemo(() => {
-    const txs = Object.values(allTransactions)
-    return txs.filter(isTransactionRecent).sort(newTransactionsFirst)
-  }, [allTransactions])
-
-  const pending = sortedRecentTransactions.filter((tx) => !tx.receipt).map((tx) => tx.hash)
-  const confirmed = sortedRecentTransactions.filter((tx) => tx.receipt).map((tx) => tx.hash)
 
   return (
     <>
       <Web3StatusInner />
-      <WalletModal ENSName={ENSName ?? undefined} pendingTransactions={pending} confirmedTransactions={confirmed} />
       {!accountHydra?.address && (
         <ConnectWalletModal showConnectWalletModal={connectModalOpen} toggleConnectWalletModal={toggleConnectModal} />
       )}
