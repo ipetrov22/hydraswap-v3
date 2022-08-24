@@ -12,9 +12,10 @@ import { RowBetween, RowFixed } from 'components/Row'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { isSupportedChain } from 'constants/chains'
 import { useV3Positions } from 'hooks/useV3Positions'
+import { useCallback } from 'react'
 import { AlertTriangle, BookOpen, ChevronDown, ChevronsRight, Inbox, Layers, PlusCircle } from 'react-feather'
 import { Link } from 'react-router-dom'
-import { useToggleWalletModal } from 'state/application/hooks'
+import { useConnectHydra, useToggleConnectModal } from 'state/application/hooks'
 import { useUserHideClosedPositions } from 'state/user/hooks'
 import styled, { css, useTheme } from 'styled-components/macro'
 import { HideSmall, ThemedText } from 'theme'
@@ -184,7 +185,14 @@ function WrongNetworkCard() {
 
 export default function Pool() {
   const { account, chainId } = useWeb3React()
-  const toggleWalletModal = useToggleWalletModal()
+
+  const toggleConnectModal = useToggleConnectModal()
+  const connectHydra = useConnectHydra()
+
+  const connectWallet = useCallback(() => {
+    toggleConnectModal()
+    connectHydra()
+  }, [toggleConnectModal, connectHydra])
 
   const theme = useTheme()
   const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
@@ -313,7 +321,7 @@ export default function Pool() {
                         properties={{ received_swap_quote: false }}
                         element={ElementName.CONNECT_WALLET_BUTTON}
                       >
-                        <ButtonPrimary style={{ marginTop: '2em', padding: '8px 16px' }} onClick={toggleWalletModal}>
+                        <ButtonPrimary style={{ marginTop: '2em', padding: '8px 16px' }} onClick={connectWallet}>
                           <Trans>Connect a wallet</Trans>
                         </ButtonPrimary>
                       </TraceEvent>

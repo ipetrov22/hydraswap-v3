@@ -83,7 +83,7 @@ if (isBrowser) {
   window.document.addEventListener('message', (e) => ReactNativeWebView && handleMessage(e.data))
 }
 
-export default {
+const toExport = {
   bind,
   define,
   fn,
@@ -91,3 +91,5 @@ export default {
   removeEventListener,
   isConnect,
 }
+
+export default toExport

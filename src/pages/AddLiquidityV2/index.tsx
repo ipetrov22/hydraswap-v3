@@ -31,7 +31,7 @@ import { useV2RouterContract } from '../../hooks/useContract'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { PairState } from '../../hooks/useV2Pairs'
-import { useToggleWalletModal } from '../../state/application/hooks'
+import { useConnectHydra, useToggleConnectModal } from '../../state/application/hooks'
 import { Field } from '../../state/mint/actions'
 import { useDerivedMintInfo, useMintActionHandlers, useMintState } from '../../state/mint/hooks'
 import { useTransactionAdder } from '../../state/transactions/hooks'
@@ -66,8 +66,6 @@ export default function AddLiquidity() {
       wrappedNativeCurrency &&
       ((currencyA && currencyA.equals(wrappedNativeCurrency)) || (currencyB && currencyB.equals(wrappedNativeCurrency)))
   )
-
-  const toggleWalletModal = useToggleWalletModal() // toggle wallet when disconnected
 
   const expertMode = useIsExpertMode()
 
@@ -320,6 +318,14 @@ export default function AddLiquidity() {
 
   const addIsUnsupported = useIsSwapUnsupported(currencies?.CURRENCY_A, currencies?.CURRENCY_B)
 
+  const toggleConnectModal = useToggleConnectModal()
+  const connectHydra = useConnectHydra()
+
+  const connectWallet = useCallback(() => {
+    toggleConnectModal()
+    connectHydra()
+  }, [toggleConnectModal, connectHydra])
+
   return (
     <>
       <AppBody>
@@ -441,7 +447,7 @@ export default function AddLiquidity() {
                 properties={{ received_swap_quote: false }}
                 element={ElementName.CONNECT_WALLET_BUTTON}
               >
-                <ButtonLight onClick={toggleWalletModal}>
+                <ButtonLight onClick={connectWallet}>
                   <Trans>Connect Wallet</Trans>
                 </ButtonLight>
               </TraceEvent>

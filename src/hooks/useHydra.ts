@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-export default function (): { walletExtension: any; hydraweb3Extension: any; error: string } {
+export default function useHydra(): { walletExtension: any; hydraweb3Extension: any; error: string } {
   const [walletExtension, setWalletExtension] = useState({})
   const [hydraweb3Extension, setHydraweb3Extension] = useState({})
   const [error, setError] = useState('')
@@ -58,7 +58,7 @@ export default function (): { walletExtension: any; hydraweb3Extension: any; err
         if (message.data.target === 'hydrawallet-inpage') {
           // result: object
           // error: string
-          const { result, error } = message.data.message.payload
+          const { error } = message.data.message.payload
           if (error) {
             if (error === 'Not logged in. Please log in to hydrawallet first.') {
               // Show an alert dialog that the user needs to login first

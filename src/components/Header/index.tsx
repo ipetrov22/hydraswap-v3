@@ -6,14 +6,16 @@ import { getChainInfoOrDefault } from 'constants/chainInfo'
 import { SupportedChainId } from 'constants/chains'
 import { TokensVariant, useTokensFlag } from 'featureFlags/flags/tokens'
 import { useWalletFlag, WalletVariant } from 'featureFlags/flags/wallet'
+import useAddHydraAccExtension, { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import useHydra from 'hooks/useHydra'
 import { darken } from 'polished'
 import { NavLink, useLocation } from 'react-router-dom'
 import { Text } from 'rebass'
 import { useShowClaimPopup, useToggleSelfClaimModal } from 'state/application/hooks'
 import { useUserHasAvailableClaim } from 'state/claim/hooks'
-import { useNativeCurrencyBalances } from 'state/connection/hooks'
 import { useUserHasSubmittedClaim } from 'state/transactions/hooks'
 import { useDarkModeManager } from 'state/user/hooks'
+import { useHYDRABalance } from 'state/wallets/hooks'
 import styled from 'styled-components/macro'
 
 import HydraLogo from '../../assets/images/hydra-logo.png'
@@ -254,9 +256,14 @@ export default function Header() {
   const walletFlag = useWalletFlag()
   const tokensFlag = useTokensFlag()
 
-  const { account, chainId } = useWeb3React()
+  const { chainId } = useWeb3React()
 
-  const userEthBalance = useNativeCurrencyBalances(account ? [account] : [])?.[account ?? '']
+  const { walletExtension, hydraweb3Extension } = useHydra()
+  useAddHydraAccExtension(walletExtension, hydraweb3Extension)
+
+  const account = accountHydra?.address
+
+  const userHydraBalance = useHYDRABalance(account ? accountHydra : undefined)?.[account ?? '']
   const [darkMode] = useDarkModeManager()
 
   const toggleClaimModal = useToggleSelfClaimModal()
@@ -271,10 +278,7 @@ export default function Header() {
 
   const { pathname } = useLocation()
 
-  const {
-    infoLink,
-    nativeCurrency: { symbol: nativeCurrencySymbol },
-  } = getChainInfoOrDefault(chainId)
+  const { infoLink } = getChainInfoOrDefault(chainId)
 
   // work around https://github.com/remix-run/react-router/issues/8161
   // as we can't pass function `({isActive}) => ''` to className with styled-components
@@ -341,11 +345,9 @@ export default function Header() {
             </UNIWrapper>
           )}
           <AccountElement active={!!account}>
-            {account && userEthBalance ? (
+            {account && userHydraBalance ? (
               <BalanceText style={{ flexShrink: 0, userSelect: 'none' }} pl="0.75rem" pr=".4rem" fontWeight={500}>
-                <Trans>
-                  {userEthBalance?.toSignificant(3)} {nativeCurrencySymbol}
-                </Trans>
+                <Trans>{userHydraBalance?.toFixed(8)} HYDRA</Trans>
               </BalanceText>
             ) : null}
             <Web3Status />

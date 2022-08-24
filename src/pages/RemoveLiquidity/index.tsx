@@ -32,7 +32,7 @@ import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallbac
 import { usePairContract, useV2RouterContract } from '../../hooks/useContract'
 import useDebouncedChangeHandler from '../../hooks/useDebouncedChangeHandler'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
-import { useToggleWalletModal } from '../../state/application/hooks'
+import { useConnectHydra, useToggleConnectModal } from '../../state/application/hooks'
 import { Field } from '../../state/burn/actions'
 import { useBurnActionHandlers, useBurnState, useDerivedBurnInfo } from '../../state/burn/hooks'
 import { useTransactionAdder } from '../../state/transactions/hooks'
@@ -56,8 +56,13 @@ export default function RemoveLiquidity() {
 
   const theme = useTheme()
 
-  // toggle wallet when disconnected
-  const toggleWalletModal = useToggleWalletModal()
+  const toggleConnectModal = useToggleConnectModal()
+  const connectHydra = useConnectHydra()
+
+  const connectWallet = useCallback(() => {
+    toggleConnectModal()
+    connectHydra()
+  }, [toggleConnectModal, connectHydra])
 
   // burn state
   const { independentField, typedValue } = useBurnState()
@@ -635,7 +640,7 @@ export default function RemoveLiquidity() {
                   properties={{ received_swap_quote: false }}
                   element={ElementName.CONNECT_WALLET_BUTTON}
                 >
-                  <ButtonLight onClick={toggleWalletModal}>
+                  <ButtonLight onClick={connectWallet}>
                     <Trans>Connect Wallet</Trans>
                   </ButtonLight>
                 </TraceEvent>
