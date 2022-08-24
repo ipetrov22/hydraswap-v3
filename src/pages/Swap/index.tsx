@@ -29,7 +29,7 @@ import { ReactNode } from 'react'
 import { ArrowDown, ArrowUp, CheckCircle, HelpCircle } from 'react-feather'
 import { useNavigate } from 'react-router-dom'
 import { Text } from 'rebass'
-import { useToggleWalletModal } from 'state/application/hooks'
+import { useConnectHydra, useToggleConnectModal } from 'state/application/hooks'
 import { InterfaceTrade } from 'state/routing/types'
 import { TradeState } from 'state/routing/types'
 import styled, { css, useTheme } from 'styled-components/macro'
@@ -199,8 +199,13 @@ export default function Swap() {
 
   const theme = useTheme()
 
-  // toggle wallet when disconnected
-  const toggleWalletModal = useToggleWalletModal()
+  const toggleConnectModal = useToggleConnectModal()
+  const connectHydra = useConnectHydra()
+
+  const connectWallet = useCallback(() => {
+    toggleConnectModal()
+    connectHydra()
+  }, [toggleConnectModal, connectHydra])
 
   // for expert mode
   const [isExpertMode] = useExpertModeManager()
@@ -673,7 +678,7 @@ export default function Swap() {
                         properties={{ received_swap_quote: getIsValidSwapQuote(trade, tradeState, swapInputError) }}
                         element={ElementName.CONNECT_WALLET_BUTTON}
                       >
-                        <ButtonLight onClick={toggleWalletModal} redesignFlag={redesignFlagEnabled}>
+                        <ButtonLight onClick={connectWallet} redesignFlag={redesignFlagEnabled}>
                           <Trans>Connect Wallet</Trans>
                         </ButtonLight>
                       </TraceEvent>

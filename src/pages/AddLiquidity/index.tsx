@@ -48,7 +48,7 @@ import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
 import { useStablecoinValue } from '../../hooks/useStablecoinPrice'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { useV3PositionFromTokenId } from '../../hooks/useV3Positions'
-import { useToggleWalletModal } from '../../state/application/hooks'
+import { useConnectHydra, useToggleConnectModal } from '../../state/application/hooks'
 import { Bound, Field } from '../../state/mint/v3/actions'
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { TransactionType } from '../../state/transactions/types'
@@ -87,7 +87,6 @@ export default function AddLiquidity() {
   } = useParams<{ currencyIdA?: string; currencyIdB?: string; feeAmount?: string; tokenId?: string }>()
   const { account, chainId, provider } = useWeb3React()
   const theme = useTheme()
-  const toggleWalletModal = useToggleWalletModal() // toggle wallet when disconnected
   const expertMode = useIsExpertMode()
   const addTransaction = useTransactionAdder()
   const positionManager = useV3NFTPositionManagerContract()
@@ -429,6 +428,14 @@ export default function AddLiquidity() {
     !depositBDisabled ? currencies[Field.CURRENCY_B]?.symbol : ''
   }`
 
+  const toggleConnectModal = useToggleConnectModal()
+  const connectHydra = useConnectHydra()
+
+  const connectWallet = useCallback(() => {
+    toggleConnectModal()
+    connectHydra()
+  }, [toggleConnectModal, connectHydra])
+
   const Buttons = () =>
     addIsUnsupported ? (
       <ButtonPrimary disabled={true} $borderRadius="12px" padding={'12px'}>
@@ -443,7 +450,7 @@ export default function AddLiquidity() {
         properties={{ received_swap_quote: false }}
         element={ElementName.CONNECT_WALLET_BUTTON}
       >
-        <ButtonLight onClick={toggleWalletModal} $borderRadius="12px" padding={'12px'}>
+        <ButtonLight onClick={connectWallet} $borderRadius="12px" padding={'12px'}>
           <Trans>Connect Wallet</Trans>
         </ButtonLight>
       </TraceEvent>
