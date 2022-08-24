@@ -1,14 +1,21 @@
 // eslint-disable-next-line no-restricted-imports
 import { Trans } from '@lingui/macro'
 import { useWeb3React } from '@web3-react/core'
+import ConnectWalletModal from 'components/ConnectWalletModal'
 import useAddHydraAccExtension, { account as accountHydra } from 'hooks/useAddHydraAccExtension'
 import useHydra from 'hooks/useHydra'
 import { darken } from 'polished'
 import { useCallback, useMemo } from 'react'
 import { AlertTriangle } from 'react-feather'
+import { ApplicationModal } from 'state/application/reducer'
 import styled, { css } from 'styled-components/macro'
 
-import { useConnectHydra, useToggleWalletModal } from '../../state/application/hooks'
+import {
+  useConnectHydra,
+  useModalIsOpen,
+  useToggleConnectModal,
+  useToggleWalletModal,
+} from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/types'
 import { shortenAddress } from '../../utils'
@@ -126,12 +133,13 @@ function Web3StatusInner() {
   const hasPendingTransactions = !!pending.length
 
   const toggleWalletModal = useToggleWalletModal()
+  const toggleConnectModal = useToggleConnectModal()
   const connectHydra = useConnectHydra()
 
   const connectWallet = useCallback(() => {
-    toggleWalletModal()
+    toggleConnectModal()
     connectHydra()
-  }, [toggleWalletModal, connectHydra])
+  }, [toggleConnectModal, connectHydra])
 
   if (error) {
     return (
@@ -175,6 +183,8 @@ function Web3StatusInner() {
 }
 
 export default function Web3Status() {
+  const connectModalOpen = useModalIsOpen(ApplicationModal.CONNECT)
+  const toggleConnectModal = useToggleConnectModal()
   const { ENSName } = useWeb3React()
 
   const allTransactions = useAllTransactions()
@@ -191,6 +201,9 @@ export default function Web3Status() {
     <>
       <Web3StatusInner />
       <WalletModal ENSName={ENSName ?? undefined} pendingTransactions={pending} confirmedTransactions={confirmed} />
+      {!accountHydra?.address && (
+        <ConnectWalletModal showConnectWalletModal={connectModalOpen} toggleConnectWalletModal={toggleConnectModal} />
+      )}
     </>
   )
 }

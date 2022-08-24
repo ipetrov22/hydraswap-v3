@@ -30,6 +30,10 @@ export function useToggleWalletModal(): () => void {
   return useToggleModal(ApplicationModal.WALLET)
 }
 
+export function useToggleConnectModal(): () => void {
+  return useToggleModal(ApplicationModal.CONNECT)
+}
+
 export function useConnectHydra(): () => void {
   return () => window.postMessage({ message: { type: 'CONNECT_HYDRAWALLET' } }, '*')
 }
