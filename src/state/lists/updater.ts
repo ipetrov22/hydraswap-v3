@@ -1,26 +1,28 @@
-import { getVersionUpgrade, minVersionBump, VersionUpgrade } from '@uniswap/token-lists'
-import { useWeb3React } from '@web3-react/core'
-import { SupportedChainId } from 'constants/chains'
-import { ARBITRUM_LIST, CELO_LIST, OPTIMISM_LIST, UNSUPPORTED_LIST_URLS } from 'constants/lists'
-import useInterval from 'lib/hooks/useInterval'
-import { useCallback, useEffect } from 'react'
-import { useAppDispatch } from 'state/hooks'
 import { useAllLists } from 'state/lists/hooks'
-
-import { isCelo } from '../../constants/tokens'
+import { getVersionUpgrade, minVersionBump, VersionUpgrade } from '@uniswap/token-lists'
+import { useCallback, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import { useFetchListCallback } from '../../hooks/useFetchListCallback'
+import useInterval from '../../hooks/useInterval'
 import useIsWindowVisible from '../../hooks/useIsWindowVisible'
-import { acceptListUpdate, enableList } from './actions'
+import { AppDispatch } from '../index'
+import { acceptListUpdate } from './actions'
 import { useActiveListUrls } from './hooks'
+import { useWeb3React } from '@web3-react/core'
+import { useAppDispatch } from 'state/hooks'
+import { useAllInactiveTokens } from 'hooks/Tokens'
 
 export default function Updater(): null {
-  const { chainId, provider } = useWeb3React()
+  const { provider } = useWeb3React()
   const dispatch = useAppDispatch()
   const isWindowVisible = useIsWindowVisible()
 
   // get all loaded lists, and the active urls
   const lists = useAllLists()
   const activeListUrls = useActiveListUrls()
+
+  // initiate loading
+  useAllInactiveTokens()
 
   const fetchList = useFetchListCallback()
   const fetchAllListsCallback = useCallback(() => {
@@ -30,17 +32,6 @@ export default function Updater(): null {
     )
   }, [fetchList, isWindowVisible, lists])
 
-  useEffect(() => {
-    if (chainId && [SupportedChainId.OPTIMISM, SupportedChainId.OPTIMISTIC_KOVAN].includes(chainId)) {
-      dispatch(enableList(OPTIMISM_LIST))
-    }
-    if (chainId && [SupportedChainId.ARBITRUM_ONE, SupportedChainId.ARBITRUM_RINKEBY].includes(chainId)) {
-      dispatch(enableList(ARBITRUM_LIST))
-    }
-    if (chainId && isCelo(chainId)) {
-      dispatch(enableList(CELO_LIST))
-    }
-  }, [chainId, dispatch])
   // fetch all lists every 10 minutes, but only after we initialize provider
   useInterval(fetchAllListsCallback, provider ? 1000 * 60 * 10 : null)
 
@@ -49,16 +40,6 @@ export default function Updater(): null {
     Object.keys(lists).forEach((listUrl) => {
       const list = lists[listUrl]
       if (!list.current && !list.loadingRequestId && !list.error) {
-        fetchList(listUrl).catch((error) => console.debug('list added fetching error', error))
-      }
-    })
-  }, [dispatch, fetchList, lists])
-
-  // if any lists from unsupported lists are loaded, check them too (in case new updates since last visit)
-  useEffect(() => {
-    UNSUPPORTED_LIST_URLS.forEach((listUrl) => {
-      const list = lists[listUrl]
-      if (!list || (!list.current && !list.loadingRequestId && !list.error)) {
         fetchList(listUrl).catch((error) => console.debug('list added fetching error', error))
       }
     })

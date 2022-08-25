@@ -89,6 +89,12 @@ export function useCombinedActiveList(): TokenAddressMap {
   return activeTokens
 }
 
+// all tokens from inactive lists
+export function useCombinedInactiveList(): TokenAddressMap {
+  const allInactiveListUrls: string[] = useInactiveListUrls()
+  return useCombinedTokenMapFromUrls(allInactiveListUrls)
+}
+
 // list of tokens not supported on interface for various reasons, used to show warnings and prevent swaps and adds
 export function useUnsupportedTokenList(): TokenAddressMap {
   // get hard-coded broken tokens

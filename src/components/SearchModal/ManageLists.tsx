@@ -198,7 +198,9 @@ const ListRow = memo(function ListRow({ listUrl }: { listUrl: string }) {
               <PopoverContainer show={true} ref={setPopperElement as any} style={styles.popper} {...attributes.popper}>
                 <div>{list && listVersionLabel(list.version)}</div>
                 <SeparatorDark />
-                <ExternalLink href={`https://tokenlists.org/token-list?url=${listUrl}`}>
+                <ExternalLink
+                  href={'https://github.com/Hydra-Chain/hydraswap-token-list/blob/main/hydraswap-list.json'}
+                >
                   <Trans>View list</Trans>
                 </ExternalLink>
                 <UnpaddedLinkStyledButton onClick={handleRemoveList} disabled={Object.keys(listsByUrl).length === 1}>
@@ -264,7 +266,7 @@ export function ManageLists({
 
   // sort by active but only if not visible
   const activeListUrls = useActiveListUrls()
-
+  console.log(activeListUrls)
   const handleInput = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setListUrlInput(e.target.value)
   }, [])
