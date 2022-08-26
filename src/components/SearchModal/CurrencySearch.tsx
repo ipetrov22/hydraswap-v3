@@ -218,13 +218,7 @@ export function CurrencySearch({
             />
           </Row>
           {showCommonBases && (
-            <CommonBases
-              chainId={chainId}
-              onSelect={handleCurrencySelect}
-              selectedCurrency={selectedCurrency}
-              searchQuery={searchQuery}
-              isAddressSearch={isAddressSearch}
-            />
+            <CommonBases chainId={chainId} onSelect={handleCurrencySelect} selectedCurrency={selectedCurrency} />
           )}
         </PaddedColumn>
         <Separator redesignFlag={redesignFlagEnabled} />
