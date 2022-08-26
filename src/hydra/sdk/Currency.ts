@@ -1,7 +1,7 @@
-import { NativeCurrency } from '@uniswap/sdk-core'
+import { NativeCurrency, Token } from '@uniswap/sdk-core'
 
 import { ChainId } from './constants'
-import { Token, WHYDRA } from './Token'
+import { WHYDRA } from './Token'
 
 /**
  * A currency is any fungible financial instrument on Ethereum, including Ether and all ERC20 tokens.

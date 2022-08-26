@@ -1,13 +1,6 @@
-import { Token as TokenUNI } from '@uniswap/sdk-core'
+import { Token } from '@uniswap/sdk-core'
 
 import { ChainId } from './constants'
-import { Currency } from './Currency'
-
-export class Token extends TokenUNI {
-  equals(other: Currency): boolean {
-    return other.chainId === this.chainId && other.isToken && other.name?.toLowerCase() === this.name?.toLowerCase()
-  }
-}
 
 export const WHYDRA = {
   [ChainId.MAINNET]: new Token(
