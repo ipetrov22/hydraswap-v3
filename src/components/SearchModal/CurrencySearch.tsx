@@ -242,8 +242,6 @@ export function CurrencySearch({
                   setImportToken={setImportToken}
                   showCurrencyAmount={showCurrencyAmount}
                   isLoading={balancesIsLoading && !tokenLoaderTimerElapsed}
-                  searchQuery={searchQuery}
-                  isAddressSearch={isAddressSearch}
                 />
               )}
             </AutoSizer>

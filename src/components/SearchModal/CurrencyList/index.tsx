@@ -242,8 +242,6 @@ export default function CurrencyList({
   setImportToken,
   showCurrencyAmount,
   isLoading,
-  searchQuery,
-  isAddressSearch,
 }: {
   height: number
   currencies: Currency[]
@@ -256,8 +254,6 @@ export default function CurrencyList({
   setImportToken: (token: Token) => void
   showCurrencyAmount?: boolean
   isLoading: boolean
-  searchQuery: string
-  isAddressSearch: string | false
 }) {
   const itemData: (Currency | BreakLine)[] = useMemo(() => {
     if (otherListTokens && otherListTokens?.length > 0) {
