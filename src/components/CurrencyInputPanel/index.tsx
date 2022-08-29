@@ -8,6 +8,7 @@ import { AutoColumn } from 'components/Column'
 import { LoadingOpacityContainer, loadingOpacityMixin } from 'components/Loader/styled'
 import { isSupportedChain } from 'constants/chains'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
+import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
 import { darken } from 'polished'
 import { ReactNode, useCallback, useState } from 'react'
 import { Lock } from 'react-feather'
@@ -265,7 +266,8 @@ export default function CurrencyInputPanel({
   ...rest
 }: CurrencyInputPanelProps) {
   const [modalOpen, setModalOpen] = useState(false)
-  const { account, chainId } = useWeb3React()
+  const account = accountHydra?.address
+  const { chainId } = useWeb3React()
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
   const selectedCurrencyBalance = useCurrencyBalance(account ?? undefined, currency ?? undefined)
