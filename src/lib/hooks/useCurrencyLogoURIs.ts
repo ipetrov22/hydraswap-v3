@@ -4,9 +4,7 @@ import useHttpLocations from 'hooks/useHttpLocations'
 import { useMemo } from 'react'
 import { WrappedTokenInfo } from 'state/lists/wrappedTokenInfo'
 
-import EthereumLogo from '../../assets/images/ethereum-logo.png'
-import CeloLogo from '../../assets/svg/celo_logo.svg'
-import MaticLogo from '../../assets/svg/matic-token-icon.svg'
+import HydraLogo from '../../assets/images/hydra-logo.png'
 import { isCelo, nativeOnChain } from '../../constants/tokens'
 
 type Network = 'ethereum' | 'arbitrum' | 'optimism' | 'polygon'
@@ -26,17 +24,8 @@ function chainIdToNetworkName(networkId: SupportedChainId): Network {
   }
 }
 
-export function getNativeLogoURI(chainId: SupportedChainId = SupportedChainId.MAINNET): string {
-  switch (chainId) {
-    case SupportedChainId.POLYGON:
-    case SupportedChainId.POLYGON_MUMBAI:
-      return MaticLogo
-    case SupportedChainId.CELO:
-    case SupportedChainId.CELO_ALFAJORES:
-      return CeloLogo
-    default:
-      return EthereumLogo
-  }
+export function getNativeLogoURI(): string {
+  return HydraLogo
 }
 
 function getTokenLogoURI(address: string, chainId: SupportedChainId = SupportedChainId.MAINNET): string | void {
@@ -60,7 +49,7 @@ export default function useCurrencyLogoURIs(currency?: Currency | null): string[
     const logoURIs = [...locations]
     if (currency) {
       if (currency.isNative) {
-        logoURIs.push(getNativeLogoURI(currency.chainId))
+        logoURIs.push(getNativeLogoURI())
       } else if (currency.isToken) {
         const logoURI = getTokenLogoURI(currency.address, currency.chainId)
         if (logoURI) {

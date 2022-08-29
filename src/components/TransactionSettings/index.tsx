@@ -1,7 +1,5 @@
 import { Trans } from '@lingui/macro'
 import { Percent } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
-import { L2_CHAIN_IDS } from 'constants/chains'
 import { DEFAULT_DEADLINE_FROM_NOW } from 'constants/misc'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
 import ms from 'ms.macro'
@@ -103,7 +101,6 @@ interface TransactionSettingsProps {
 const THREE_DAYS_IN_SECONDS = ms`3 days` / 1000
 
 export default function TransactionSettings({ placeholderSlippage }: TransactionSettingsProps) {
-  const { chainId } = useWeb3React()
   const theme = useTheme()
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
@@ -164,8 +161,6 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
       }
     }
   }
-
-  const showCustomDeadlineRow = Boolean(chainId && !L2_CHAIN_IDS.includes(chainId))
 
   return (
     <AutoColumn gap="md">
@@ -244,47 +239,45 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
         ) : null}
       </AutoColumn>
 
-      {showCustomDeadlineRow && (
-        <AutoColumn gap="sm">
-          <RowFixed>
-            <ThemedText.DeprecatedBlack fontSize={14} fontWeight={400} color={theme.deprecated_text2}>
-              <Trans>Transaction deadline</Trans>
-            </ThemedText.DeprecatedBlack>
-            <QuestionHelper
-              text={<Trans>Your transaction will revert if it is pending for more than this period of time.</Trans>}
-            />
-          </RowFixed>
-          <RowFixed>
-            <OptionCustom
-              style={{ width: '80px' }}
-              warning={!!deadlineError}
-              tabIndex={-1}
+      <AutoColumn gap="sm">
+        <RowFixed>
+          <ThemedText.DeprecatedBlack fontSize={14} fontWeight={400} color={theme.deprecated_text2}>
+            <Trans>Transaction deadline</Trans>
+          </ThemedText.DeprecatedBlack>
+          <QuestionHelper
+            text={<Trans>Your transaction will revert if it is pending for more than this period of time.</Trans>}
+          />
+        </RowFixed>
+        <RowFixed>
+          <OptionCustom
+            style={{ width: '80px' }}
+            warning={!!deadlineError}
+            tabIndex={-1}
+            redesignFlag={redesignFlagEnabled}
+          >
+            <Input
               redesignFlag={redesignFlagEnabled}
-            >
-              <Input
-                redesignFlag={redesignFlagEnabled}
-                placeholder={(DEFAULT_DEADLINE_FROM_NOW / 60).toString()}
-                value={
-                  deadlineInput.length > 0
-                    ? deadlineInput
-                    : deadline === DEFAULT_DEADLINE_FROM_NOW
-                    ? ''
-                    : (deadline / 60).toString()
-                }
-                onChange={(e) => parseCustomDeadline(e.target.value)}
-                onBlur={() => {
-                  setDeadlineInput('')
-                  setDeadlineError(false)
-                }}
-                color={deadlineError ? 'red' : ''}
-              />
-            </OptionCustom>
-            <ThemedText.DeprecatedBody style={{ paddingLeft: '8px' }} fontSize={14}>
-              <Trans>minutes</Trans>
-            </ThemedText.DeprecatedBody>
-          </RowFixed>
-        </AutoColumn>
-      )}
+              placeholder={(DEFAULT_DEADLINE_FROM_NOW / 60).toString()}
+              value={
+                deadlineInput.length > 0
+                  ? deadlineInput
+                  : deadline === DEFAULT_DEADLINE_FROM_NOW
+                  ? ''
+                  : (deadline / 60).toString()
+              }
+              onChange={(e) => parseCustomDeadline(e.target.value)}
+              onBlur={() => {
+                setDeadlineInput('')
+                setDeadlineError(false)
+              }}
+              color={deadlineError ? 'red' : ''}
+            />
+          </OptionCustom>
+          <ThemedText.DeprecatedBody style={{ paddingLeft: '8px' }} fontSize={14}>
+            <Trans>minutes</Trans>
+          </ThemedText.DeprecatedBody>
+        </RowFixed>
+      </AutoColumn>
     </AutoColumn>
   )
 }

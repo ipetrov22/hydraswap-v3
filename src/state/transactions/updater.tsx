@@ -1,13 +1,12 @@
 import { useWeb3React } from '@web3-react/core'
 import { sendAnalyticsEvent } from 'components/AmplitudeAnalytics'
 import { EventName } from 'components/AmplitudeAnalytics/constants'
-import { DEFAULT_TXN_DISMISS_MS, L2_TXN_DISMISS_MS } from 'constants/misc'
+import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import LibUpdater from 'lib/hooks/transactions/updater'
 import { useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 import { TransactionType } from 'state/transactions/types'
 
-import { L2_CHAIN_IDS } from '../../constants/chains'
 import { useAddPopup } from '../application/hooks'
 import { checkedTransaction, finalizeTransaction } from './reducer'
 import { SerializableTransactionReceipt } from './types'
@@ -16,7 +15,6 @@ export default function Updater() {
   const { chainId } = useWeb3React()
   const addPopup = useAddPopup()
   // speed up popup dismisall time if on L2
-  const isL2 = Boolean(chainId && L2_CHAIN_IDS.includes(chainId))
   const transactions = useAppSelector((state) => state.transactions)
 
   const dispatch = useAppDispatch()
@@ -55,10 +53,10 @@ export default function Updater() {
           txn: { hash },
         },
         hash,
-        isL2 ? L2_TXN_DISMISS_MS : DEFAULT_TXN_DISMISS_MS
+        DEFAULT_TXN_DISMISS_MS
       )
     },
-    [addPopup, dispatch, isL2, transactions]
+    [addPopup, dispatch, transactions]
   )
 
   const pendingTransactions = useMemo(() => (chainId ? transactions[chainId] ?? {} : {}), [chainId, transactions])

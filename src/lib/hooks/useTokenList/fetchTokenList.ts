@@ -3,8 +3,6 @@ import contenthashToUri from 'lib/utils/contenthashToUri'
 import parseENSAddress from 'lib/utils/parseENSAddress'
 import uriToHttp from 'lib/utils/uriToHttp'
 
-import validateTokenList from './validateTokenList'
-
 export const DEFAULT_TOKEN_LIST = 'https://gateway.ipfs.io/ipns/tokens.uniswap.org'
 
 const listCache = new Map<string, TokenList>()
@@ -64,9 +62,8 @@ export default async function fetchTokenList(
     }
 
     const json = await response.json()
-    const list = await validateTokenList(json)
-    listCache?.set(listUrl, list)
-    return list
+    listCache?.set(listUrl, json)
+    return json
   }
 
   throw new Error('Unrecognized list URL protocol.')
