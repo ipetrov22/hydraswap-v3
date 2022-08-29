@@ -282,7 +282,6 @@ export function ManageLists({
     return listUrls
       .filter((listUrl) => {
         // only show loaded lists, hide unsupported lists
-        console.log(listUrl, lists)
         return Boolean(lists[listUrl].current) && !Boolean(UNSUPPORTED_LIST_URLS.includes(listUrl))
       })
       .sort((listUrlA, listUrlB) => {
