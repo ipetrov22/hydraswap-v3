@@ -21,6 +21,7 @@ import TokenSafetyModal from 'components/TokenSafety/TokenSafetyModal'
 import { MouseoverTooltip } from 'components/Tooltip'
 import { isSupportedChain } from 'constants/chains'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
+import useHydra from 'hooks/useHydra'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
@@ -50,6 +51,7 @@ import { SwitchLocaleLink } from '../../components/SwitchLocaleLink'
 import TokenWarningModal from '../../components/TokenWarningModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
+import useAddHydraAccExtension, { account as accountHydra } from '../../hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from '../../hooks/useERC20Permit'
@@ -157,7 +159,10 @@ export default function Swap() {
   const navigate = useNavigate()
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
-  const { account, chainId } = useWeb3React()
+  const { walletExtension, hydraweb3Extension } = useHydra()
+  useAddHydraAccExtension(walletExtension, hydraweb3Extension)
+  const account = accountHydra?.address
+  const { chainId } = useWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
   const [newSwapQuoteNeedsLogging, setNewSwapQuoteNeedsLogging] = useState(true)
   const [fetchingSwapQuoteStartTime, setFetchingSwapQuoteStartTime] = useState<Date | undefined>()
@@ -672,16 +677,9 @@ export default function Swap() {
                         </ThemedText.DeprecatedMain>
                       </ButtonPrimary>
                     ) : !account ? (
-                      <TraceEvent
-                        events={[Event.onClick]}
-                        name={EventName.CONNECT_WALLET_BUTTON_CLICKED}
-                        properties={{ received_swap_quote: getIsValidSwapQuote(trade, tradeState, swapInputError) }}
-                        element={ElementName.CONNECT_WALLET_BUTTON}
-                      >
-                        <ButtonLight onClick={connectWallet} redesignFlag={redesignFlagEnabled}>
-                          <Trans>Connect Wallet</Trans>
-                        </ButtonLight>
-                      </TraceEvent>
+                      <ButtonLight onClick={connectWallet} redesignFlag={redesignFlagEnabled}>
+                        <Trans>Connect Wallet</Trans>
+                      </ButtonLight>
                     ) : showWrap ? (
                       <ButtonPrimary disabled={Boolean(wrapInputError)} onClick={onWrap}>
                         {wrapInputError ? (
