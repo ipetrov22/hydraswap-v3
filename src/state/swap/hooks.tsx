@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, TradeType } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
+import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
 import useAutoSlippageTolerance from 'hooks/useAutoSlippageTolerance'
 import { useBestTrade } from 'hooks/useBestTrade'
 import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
@@ -87,7 +88,7 @@ export function useDerivedSwapInfo(): {
   }
   allowedSlippage: Percent
 } {
-  const { account } = useWeb3React()
+  const account = accountHydra?.address
 
   const {
     independentField,
