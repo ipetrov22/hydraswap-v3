@@ -1,6 +1,9 @@
 import { useWeb3React } from '@web3-react/core'
 import useIsWindowVisible from 'hooks/useIsWindowVisible'
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { ChainId } from 'hydra/sdk'
+import { createContext, ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { AppState } from 'state'
 
 const MISSING_PROVIDER = Symbol()
 const BlockNumberContext = createContext<
@@ -10,17 +13,10 @@ const BlockNumberContext = createContext<
   | typeof MISSING_PROVIDER
 >(MISSING_PROVIDER)
 
-function useBlockNumberContext() {
-  const blockNumber = useContext(BlockNumberContext)
-  if (blockNumber === MISSING_PROVIDER) {
-    throw new Error('BlockNumber hooks must be wrapped in a <BlockNumberProvider>')
-  }
-  return blockNumber
-}
-
-/** Requires that BlockUpdater be installed in the DOM tree. */
 export default function useBlockNumber(): number | undefined {
-  return useBlockNumberContext().value
+  const chainId = ChainId.MAINNET
+
+  return useSelector((state: AppState) => state.application.blockNumber[chainId ?? -1])
 }
 
 export function BlockNumberProvider({ children }: { children: ReactNode }) {
