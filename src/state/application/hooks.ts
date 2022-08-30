@@ -1,9 +1,17 @@
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
+import { ChainId } from 'hydra/sdk'
 import { useCallback, useMemo } from 'react'
+import { useSelector } from 'react-redux'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
 import { AppState } from '../index'
 import { addPopup, ApplicationModal, PopupContent, removePopup, setOpenModal } from './reducer'
+
+export function useBlockNumber(): number | undefined {
+  const chainId = ChainId.MAINNET
+
+  return useSelector((state: AppState) => state.application.blockNumber[chainId ?? -1])
+}
 
 export function useModalIsOpen(modal: ApplicationModal): boolean {
   const openModal = useAppSelector((state: AppState) => state.application.openModal)
