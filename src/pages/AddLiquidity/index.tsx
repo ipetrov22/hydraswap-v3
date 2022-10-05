@@ -4,10 +4,9 @@ import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { FeeAmount, NonfungiblePositionManager } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
-import { ElementName, Event, EventName } from 'components/AmplitudeAnalytics/constants'
-import { TraceEvent } from 'components/AmplitudeAnalytics/TraceEvent'
 import { sendEvent } from 'components/analytics'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
+import useHydra from 'hooks/useHydra'
 import useParsedQueryString from 'hooks/useParsedQueryString'
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle } from 'react-feather'
@@ -40,6 +39,7 @@ import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES } from '../../constants/addresse
 import { ZERO_PERCENT } from '../../constants/misc'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useCurrency } from '../../hooks/Tokens'
+import useAddHydraAccExtension, { account as accountHydra } from '../../hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useArgentWalletContract } from '../../hooks/useArgentWalletContract'
 import { useV3NFTPositionManagerContract } from '../../hooks/useContract'
@@ -85,7 +85,12 @@ export default function AddLiquidity() {
     feeAmount: feeAmountFromUrl,
     tokenId,
   } = useParams<{ currencyIdA?: string; currencyIdB?: string; feeAmount?: string; tokenId?: string }>()
-  const { account, chainId, provider } = useWeb3React()
+  const { chainId, provider } = useWeb3React()
+  const { walletExtension, hydraweb3Extension } = useHydra()
+
+  useAddHydraAccExtension(walletExtension, hydraweb3Extension)
+  const account = accountHydra?.address
+
   const theme = useTheme()
   const expertMode = useIsExpertMode()
   const addTransaction = useTransactionAdder()
@@ -444,16 +449,9 @@ export default function AddLiquidity() {
         </ThemedText.DeprecatedMain>
       </ButtonPrimary>
     ) : !account ? (
-      <TraceEvent
-        events={[Event.onClick]}
-        name={EventName.CONNECT_WALLET_BUTTON_CLICKED}
-        properties={{ received_swap_quote: false }}
-        element={ElementName.CONNECT_WALLET_BUTTON}
-      >
-        <ButtonLight onClick={connectWallet} $borderRadius="12px" padding={'12px'}>
-          <Trans>Connect Wallet</Trans>
-        </ButtonLight>
-      </TraceEvent>
+      <ButtonLight onClick={connectWallet} $borderRadius="12px" padding={'12px'}>
+        <Trans>Connect Wallet</Trans>
+      </ButtonLight>
     ) : (
       <AutoColumn gap={'md'}>
         {(approvalA === ApprovalState.NOT_APPROVED ||
