@@ -11,6 +11,7 @@ import PositionList from 'components/PositionList'
 import { RowBetween, RowFixed } from 'components/Row'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { isSupportedChain } from 'constants/chains'
+import useHydra from 'hooks/useHydra'
 import { useV3Positions } from 'hooks/useV3Positions'
 import { useCallback } from 'react'
 import { AlertTriangle, BookOpen, ChevronDown, ChevronsRight, Inbox, Layers, PlusCircle } from 'react-feather'
@@ -22,6 +23,7 @@ import { HideSmall, ThemedText } from 'theme'
 import { PositionDetails } from 'types/position'
 
 import { V2_FACTORY_ADDRESSES } from '../../constants/addresses'
+import useAddHydraAccExtension, { account as accountHydra } from '../../hooks/useAddHydraAccExtension'
 import CTACards from './CTACards'
 import { LoadingRows } from './styleds'
 
@@ -184,7 +186,12 @@ function WrongNetworkCard() {
 }
 
 export default function Pool() {
-  const { account, chainId } = useWeb3React()
+  const { chainId } = useWeb3React()
+  const { walletExtension, hydraweb3Extension } = useHydra()
+
+  useAddHydraAccExtension(walletExtension, hydraweb3Extension)
+  const account = accountHydra?.address
+  const { positions, loading: positionsLoading } = useV3Positions(account)
 
   const toggleConnectModal = useToggleConnectModal()
   const connectHydra = useConnectHydra()
@@ -196,8 +203,6 @@ export default function Pool() {
 
   const theme = useTheme()
   const [userHideClosedPositions, setUserHideClosedPositions] = useUserHideClosedPositions()
-
-  const { positions, loading: positionsLoading } = useV3Positions(account)
 
   if (!isSupportedChain(chainId)) {
     return <WrongNetworkCard />
