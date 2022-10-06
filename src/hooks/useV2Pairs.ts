@@ -1,5 +1,6 @@
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
-import { computePairAddress, Pair } from '@uniswap/v2-sdk'
+import { Pair } from '@uniswap/v2-sdk'
+import { computePairAddress } from 'hydra/sdk'
 import { useMemo } from 'react'
 
 import { V2_FACTORY_ADDRESSES } from '../constants/addresses'
@@ -33,7 +34,7 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
   )
 
   const results = useGetReserves(pairAddresses)
-  console.log(tokens, results)
+
   return useMemo(() => {
     return results.map((result, i) => {
       const { result: reserves, loading } = result
