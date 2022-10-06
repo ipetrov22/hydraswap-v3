@@ -6,8 +6,15 @@ import { useWeb3React } from '@web3-react/core'
 import { sendEvent } from 'components/analytics'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
-import useAddHydraAccExtension, { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import { V2_ROUTER_ADDRESS } from 'constants/addresses'
+import useAddHydraAccExtension, {
+  account as accountHydra,
+  isEmptyObj,
+  useHydraLibrary,
+} from 'hooks/useAddHydraAccExtension'
 import useHydra from 'hooks/useHydra'
+import { AbiHydraV2Router01 } from 'hydra/contracts/abi'
+import { getContract } from 'hydra/contracts/utils'
 import { useCallback, useState } from 'react'
 import { Plus } from 'react-feather'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -27,7 +34,6 @@ import { ZERO_PERCENT } from '../../constants/misc'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
-import { useV2RouterContract } from '../../hooks/useContract'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
 import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { PairState } from '../../hooks/useV2Pairs'
@@ -52,11 +58,12 @@ const DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 export default function AddLiquidity() {
   const { currencyIdA, currencyIdB } = useParams<{ currencyIdA?: string; currencyIdB?: string }>()
   const navigate = useNavigate()
-  const { chainId, provider } = useWeb3React()
+  const { chainId } = useWeb3React()
   const { walletExtension, hydraweb3Extension } = useHydra()
 
   useAddHydraAccExtension(walletExtension, hydraweb3Extension)
   const account = accountHydra?.address
+  const [library] = useHydraLibrary()
 
   const theme = useTheme()
 
@@ -65,7 +72,7 @@ export default function AddLiquidity() {
 
   const wrappedNativeCurrency = chainId ? WRAPPED_NATIVE_CURRENCY[chainId] : undefined
 
-  const oneCurrencyIsWETH = Boolean(
+  const oneCurrencyIsHYDRA = Boolean(
     chainId &&
       wrappedNativeCurrency &&
       ((currencyA && currencyA.equals(wrappedNativeCurrency)) || (currencyB && currencyB.equals(wrappedNativeCurrency)))
@@ -129,7 +136,7 @@ export default function AddLiquidity() {
     {}
   )
 
-  const router = useV2RouterContract()
+  const router = getContract(library, V2_ROUTER_ADDRESS, AbiHydraV2Router01)
 
   // check whether the user has approved the router on the tokens
   const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], router?.address)
@@ -138,7 +145,7 @@ export default function AddLiquidity() {
   const addTransaction = useTransactionAdder()
 
   async function onAdd() {
-    if (!chainId || !provider || !account || !router) return
+    if (!chainId || isEmptyObj(library) || !account || !router) return
 
     const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
     if (!parsedAmountA || !parsedAmountB || !currencyA || !currencyB || !deadline) {
@@ -155,18 +162,18 @@ export default function AddLiquidity() {
       args: Array<string | string[] | number>,
       value: BigNumber | null
     if (currencyA.isNative || currencyB.isNative) {
-      const tokenBIsETH = currencyB.isNative
-      estimate = router.estimateGas.addLiquidityETH
-      method = router.addLiquidityETH
+      const tokenBIsHYDRA = currencyB.isNative
+      estimate = router.estimateGas.addLiquidityHYDRA
+      method = router.addLiquidityHYDRA
       args = [
-        (tokenBIsETH ? currencyA : currencyB)?.wrapped?.address ?? '', // token
-        (tokenBIsETH ? parsedAmountA : parsedAmountB).quotient.toString(), // token desired
-        amountsMin[tokenBIsETH ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
-        amountsMin[tokenBIsETH ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // eth min
+        (tokenBIsHYDRA ? currencyA : currencyB)?.wrapped?.address ?? '', // token
+        (tokenBIsHYDRA ? parsedAmountA : parsedAmountB).quotient.toString(), // token desired
+        amountsMin[tokenBIsHYDRA ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
+        amountsMin[tokenBIsHYDRA ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // hydra min
         account,
         deadline.toHexString(),
       ]
-      value = BigNumber.from((tokenBIsETH ? parsedAmountB : parsedAmountA).quotient.toString())
+      value = BigNumber.from((tokenBIsHYDRA ? parsedAmountB : parsedAmountA).quotient.toString())
     } else {
       estimate = router.estimateGas.addLiquidity
       method = router.addLiquidity
@@ -185,7 +192,7 @@ export default function AddLiquidity() {
 
     setAttemptingTxn(true)
     await estimate(...args, value ? { value } : {})
-      .then((estimatedGasLimit) =>
+      .then((estimatedGasLimit: BigNumber) =>
         method(...args, {
           ...(value ? { value } : {}),
           gasLimit: calculateGasMargin(estimatedGasLimit),
@@ -209,7 +216,7 @@ export default function AddLiquidity() {
           })
         })
       )
-      .catch((error) => {
+      .catch((error: { code: number }) => {
         setAttemptingTxn(false)
         // we only care if the error is something _other_ than the user rejected the tx
         if (error?.code !== 4001) {
@@ -302,7 +309,7 @@ export default function AddLiquidity() {
           navigate(`/add/v2/${newCurrencyIdB}`)
         }
       } else {
-        navigate(`/add/v2/${currencyIdA ? currencyIdA : 'ETH'}/${newCurrencyIdB}`)
+        navigate(`/add/v2/${currencyIdA ? currencyIdA : 'HYDRA'}/${newCurrencyIdB}`)
       }
     },
     [currencyIdA, navigate, currencyIdB]
@@ -509,7 +516,7 @@ export default function AddLiquidity() {
       {!addIsUnsupported ? (
         pair && !noLiquidity && pairState !== PairState.INVALID ? (
           <AutoColumn style={{ minWidth: '20rem', width: '100%', maxWidth: '400px', marginTop: '1rem' }}>
-            <MinimalPositionCard showUnwrapped={oneCurrencyIsWETH} pair={pair} />
+            <MinimalPositionCard showUnwrapped={oneCurrencyIsHYDRA} pair={pair} />
           </AutoColumn>
         ) : null
       ) : (

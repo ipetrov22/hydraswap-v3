@@ -61,7 +61,7 @@ export function useDerivedMintInfo(
   poolTokenPercentage?: Percent
   error?: ReactNode
 } {
-  const account = accountHydra.address
+  const account = accountHydra?.address
 
   const { independentField, typedValue, otherTypedValue } = useMintState()
 

@@ -16,6 +16,6 @@ export function maxAmountSpend(currencyAmount?: CurrencyAmount<Currency>): Curre
       return CurrencyAmount.fromRawAmount(currencyAmount.currency, JSBI.BigInt(0))
     }
   }
-  console.log(3)
+
   return currencyAmount
 }

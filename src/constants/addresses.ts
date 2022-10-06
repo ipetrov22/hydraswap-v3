@@ -1,4 +1,3 @@
-import { FACTORY_ADDRESS as V2_FACTORY_ADDRESS } from '@uniswap/v2-sdk'
 import { FACTORY_ADDRESS as V3_FACTORY_ADDRESS } from '@uniswap/v3-sdk'
 
 import { constructSameAddressMap } from '../utils/constructSameAddressMap'
@@ -8,8 +7,9 @@ type AddressMap = { [chainId: number]: string }
 
 export const UNI_ADDRESS: AddressMap = constructSameAddressMap('0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984')
 
-export const V2_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap(V2_FACTORY_ADDRESS)
-export const V2_ROUTER_ADDRESS: AddressMap = constructSameAddressMap('0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D')
+const HYDRA_V2_FACTORY = '0xd8350cf44cb326c81fdf91ded2bf92e6b785d64c' // TESTNET
+export const V2_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap(HYDRA_V2_FACTORY)
+export const V2_ROUTER_ADDRESS: AddressMap = constructSameAddressMap('0xd048412e0500b80c1f8c4dcc3e0dc189ed636251') // TESTNET
 
 // celo v3 addresses
 const CELO_V3_CORE_FACTORY_ADDRESSES = '0xAfE208a311B21f13EF87E33A90049fC17A7acDEc'

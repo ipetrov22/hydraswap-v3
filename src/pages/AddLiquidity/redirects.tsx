@@ -10,15 +10,15 @@ export function RedirectDuplicateTokenIds() {
   const { chainId } = useWeb3React()
 
   // prevent weth + eth
-  const isETHOrWETHA =
-    currencyIdA === 'ETH' || (chainId !== undefined && currencyIdA === WRAPPED_NATIVE_CURRENCY[chainId]?.address)
-  const isETHOrWETHB =
-    currencyIdB === 'ETH' || (chainId !== undefined && currencyIdB === WRAPPED_NATIVE_CURRENCY[chainId]?.address)
+  const isHydraorWhydraA =
+    currencyIdA === 'HYDRA' || (chainId !== undefined && currencyIdA === WRAPPED_NATIVE_CURRENCY[chainId]?.address)
+  const isHydraorWhydraB =
+    currencyIdB === 'HYDRA' || (chainId !== undefined && currencyIdB === WRAPPED_NATIVE_CURRENCY[chainId]?.address)
 
   if (
     currencyIdA &&
     currencyIdB &&
-    (currencyIdA.toLowerCase() === currencyIdB.toLowerCase() || (isETHOrWETHA && isETHOrWETHB))
+    (currencyIdA.toLowerCase() === currencyIdB.toLowerCase() || (isHydraorWhydraA && isHydraorWhydraB))
   ) {
     return <Navigate to={`/add/${currencyIdA}`} replace />
   }
