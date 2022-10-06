@@ -88,5 +88,5 @@ export function computePairAddress(_ref: { factoryAddress: string; tokenA: Token
     factoryAddress,
     keccak256(['bytes'], [pack(['address', 'address'], [token0.address, token1.address])]),
     INIT_CODE_HASH
-  )
+  ).toLowerCase()
 }
