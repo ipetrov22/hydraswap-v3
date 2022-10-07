@@ -1,7 +1,7 @@
-import { MixedRouteSDK, Protocol } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
-import { Pair, Route as V2Route } from '@uniswap/v2-sdk'
 import { FeeAmount, Pool, Route as V3Route } from '@uniswap/v3-sdk'
+import { MixedRouteSDK, Protocol } from 'hydra-router-sdk'
+import { Pair, Route as V2Route } from 'hydra-v2-sdk'
 
 import { nativeOnChain } from '../../constants/tokens'
 import { GetQuoteResult, InterfaceTrade, V2PoolInRoute, V3PoolInRoute } from './types'

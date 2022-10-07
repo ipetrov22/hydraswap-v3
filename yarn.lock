@@ -11135,6 +11135,28 @@ human-signals@^1.1.1:
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-1.1.1.tgz#c5b1cd14f50aeae09ab6c59fe63ba3395fe4dfa3"
   integrity sha512-SEQu7vl8KjNL2eoGBLF3+wAjpsNfA9XMlXAYj/3EdaNfAlxKthD1xjEQfGOUhllCGGJVNY34bRr6lPINhNjyZw==
 
+hydra-router-sdk@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/hydra-router-sdk/-/hydra-router-sdk-1.0.0.tgz#d9eda792361702b87140e9ae30ba39f320e3e8c8"
+  integrity sha512-QfZoKYAf+HZH/B7CqN3cyS0shIg0PAU62nEiUDlrthcvH3rFBWvNWuJliAeluKbyMYCruuH+F9hrzTj3KH8bXA==
+  dependencies:
+    "@ethersproject/abi" "^5.5.0"
+    "@uniswap/sdk-core" "^3.0.1"
+    "@uniswap/swap-router-contracts" "1.1.0"
+    "@uniswap/v3-sdk" "^3.8.3"
+    hydra-v2-sdk "^1.0.0"
+
+hydra-v2-sdk@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/hydra-v2-sdk/-/hydra-v2-sdk-1.0.0.tgz#2ff63ce8e3a4dba506faf1224cee6965f2b91b71"
+  integrity sha512-ZNUmYaiplcSVtbuyw0iiMznn5nQkslnaYEjQFA9pdnJIf7+9/dRRMs/MWMrlAIlbGgwWaXA2MzcPlwQJ06lMtg==
+  dependencies:
+    "@ethersproject/address" "^5.0.0"
+    "@ethersproject/solidity" "^5.0.0"
+    "@uniswap/sdk-core" "^3.0.0-alpha.3"
+    tiny-invariant "^1.1.0"
+    tiny-warning "^1.0.3"
+
 hydraweb3-js@^0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/hydraweb3-js/-/hydraweb3-js-0.0.4.tgz#543bf0787c66fca3ef04d2b6d1900ae564087034"

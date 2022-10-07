@@ -1,12 +1,9 @@
 import { getAddress } from '@ethersproject/address'
-import { getCreate2Address } from '@ethersproject/address'
-import { keccak256, pack } from '@ethersproject/solidity'
-import { Token } from '@uniswap/sdk-core'
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 import warning from 'tiny-warning'
 
-import { BigintIsh, INIT_CODE_HASH, ONE, THREE, TWO, ZERO } from './constants'
+import { BigintIsh, ONE, THREE, TWO, ZERO } from './constants'
 
 // warns if addresses are not checksummed
 export function validateAndParseAddress(address: string): string {
@@ -73,20 +70,4 @@ export function sortedInsert<T>(items: T[], add: T, maxSize: number, comparator:
     items.splice(lo, 0, add)
     return isFull ? items.pop() ?? null : null
   }
-}
-
-export function computePairAddress(_ref: { factoryAddress: string; tokenA: Token; tokenB: Token }) {
-  const factoryAddress = _ref.factoryAddress,
-    tokenA = _ref.tokenA,
-    tokenB = _ref.tokenB
-
-  const _ref2 = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA],
-    token0 = _ref2[0],
-    token1 = _ref2[1] // does safety checks
-
-  return getCreate2Address(
-    factoryAddress,
-    keccak256(['bytes'], [pack(['address', 'address'], [token0.address, token1.address])]),
-    INIT_CODE_HASH
-  ).toLowerCase()
 }
