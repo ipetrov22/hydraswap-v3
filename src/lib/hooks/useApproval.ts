@@ -1,14 +1,13 @@
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
 import { Currency, CurrencyAmount, Token } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
-import { sendAnalyticsEvent } from 'components/AmplitudeAnalytics'
-import { EventName } from 'components/AmplitudeAnalytics/constants'
-import { getTokenAddress } from 'components/AmplitudeAnalytics/utils'
-import { useTokenContract } from 'hooks/useContract'
+import { useHydraAccount, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
 import { useTokenAllowance } from 'hooks/useTokenAllowance'
+import { AbiToken } from 'hydra/contracts/abi'
+import { approve as approveToken } from 'hydra/contracts/tokenFunctions'
+import { getContract } from 'hydra/contracts/utils'
+import { ChainId } from 'hydra/sdk'
 import { useCallback, useMemo } from 'react'
-import { calculateGasMargin } from 'utils/calculateGasMargin'
 
 export enum ApprovalState {
   UNKNOWN = 'UNKNOWN',
@@ -22,10 +21,10 @@ function useApprovalStateForSpender(
   spender: string | undefined,
   useIsPendingApproval: (token?: Token, spender?: string) => boolean
 ): ApprovalState {
-  const { account } = useWeb3React()
+  const [account] = useHydraAccount()
   const token = amountToApprove?.currency?.isToken ? amountToApprove.currency : undefined
 
-  const currentAllowance = useTokenAllowance(token, account ?? undefined, spender)
+  const currentAllowance = useTokenAllowance(token, account?.address ?? undefined, spender)
   const pendingApproval = useIsPendingApproval(token, spender)
 
   return useMemo(() => {
@@ -51,13 +50,16 @@ export function useApproval(
   ApprovalState,
   () => Promise<{ response: TransactionResponse; tokenAddress: string; spenderAddress: string } | undefined>
 ] {
-  const { chainId } = useWeb3React()
+  const chainId = ChainId.MAINNET
+  const [account] = useHydraAccount()
+  const [library] = useHydraLibrary()
   const token = amountToApprove?.currency?.isToken ? amountToApprove.currency : undefined
 
   // check the current approval status
   const approvalState = useApprovalStateForSpender(amountToApprove, spender, useIsPendingApproval)
 
-  const tokenContract = useTokenContract(token?.address)
+  // const tokenContract = useTokenContract(token?.address)
+  const tokenContract = getContract(library, token?.address.toLowerCase(), AbiToken)
 
   const approve = useCallback(async () => {
     function logFailure(error: Error | string): undefined {
@@ -80,35 +82,19 @@ export function useApproval(
       return logFailure('no spender')
     }
 
-    let useExact = false
-    const estimatedGas = await tokenContract.estimateGas.approve(spender, MaxUint256).catch(() => {
-      // general fallback for tokens which restrict approval amounts
-      useExact = true
-      return tokenContract.estimateGas.approve(spender, amountToApprove.quotient.toString())
-    })
-
-    return tokenContract
-      .approve(spender, useExact ? amountToApprove.quotient.toString() : MaxUint256, {
-        gasLimit: calculateGasMargin(estimatedGas),
-      })
+    return approveToken(spender, tokenContract, account, MaxUint256)
       .then((response) => {
-        const eventProperties = {
-          chain_id: chainId,
-          token_symbol: token?.symbol,
-          token_address: getTokenAddress(token),
-        }
-        sendAnalyticsEvent(EventName.APPROVE_TOKEN_TXN_SUBMITTED, eventProperties)
         return {
           response,
           tokenAddress: token.address,
           spenderAddress: spender,
         }
       })
-      .catch((error: Error) => {
+      .catch((error) => {
         logFailure(error)
         throw error
       })
-  }, [approvalState, token, tokenContract, amountToApprove, spender, chainId])
+  }, [approvalState, token, tokenContract, amountToApprove, spender, chainId, account])
 
   return [approvalState, approve]
 }

@@ -2,7 +2,6 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
 import { sendEvent } from 'components/analytics'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
@@ -15,6 +14,7 @@ import useAddHydraAccExtension, {
 import useHydra from 'hooks/useHydra'
 import { AbiHydraV2Router01 } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
+import { ChainId } from 'hydra/sdk'
 import { useCallback, useState } from 'react'
 import { Plus } from 'react-feather'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -58,7 +58,7 @@ const DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 export default function AddLiquidity() {
   const { currencyIdA, currencyIdB } = useParams<{ currencyIdA?: string; currencyIdB?: string }>()
   const navigate = useNavigate()
-  const { chainId } = useWeb3React()
+  const chainId = ChainId.MAINNET
   const { walletExtension, hydraweb3Extension } = useHydra()
 
   useAddHydraAccExtension(walletExtension, hydraweb3Extension)
@@ -139,8 +139,8 @@ export default function AddLiquidity() {
   const router = getContract(library, V2_ROUTER_ADDRESS, AbiHydraV2Router01)
 
   // check whether the user has approved the router on the tokens
-  const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], router?.address)
-  const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], router?.address)
+  const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], V2_ROUTER_ADDRESS)
+  const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], V2_ROUTER_ADDRESS)
 
   const addTransaction = useTransactionAdder()
 

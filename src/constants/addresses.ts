@@ -9,7 +9,7 @@ export const UNI_ADDRESS: AddressMap = constructSameAddressMap('0x1f9840a85d5aF5
 
 const HYDRA_V2_FACTORY = '0x5a2a927bea6c5f4a48d4e0116049c1e36d52a528' // MAINNET
 export const V2_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap(HYDRA_V2_FACTORY)
-export const V2_ROUTER_ADDRESS: AddressMap = constructSameAddressMap('0xdf60e3babacfce81c9efcb268c14a7d33efe567b') // MAINNET
+export const V2_ROUTER_ADDRESS = '0xdf60e3babacfce81c9efcb268c14a7d33efe567b' // MAINNET
 
 // celo v3 addresses
 const CELO_V3_CORE_FACTORY_ADDRESSES = '0xAfE208a311B21f13EF87E33A90049fC17A7acDEc'
