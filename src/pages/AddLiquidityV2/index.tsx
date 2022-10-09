@@ -35,7 +35,6 @@ import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
-import useTransactionDeadline from '../../hooks/useTransactionDeadline'
 import { PairState } from '../../hooks/useV2Pairs'
 import { useConnectHydra, useToggleConnectModal } from '../../state/application/hooks'
 import { Field } from '../../state/mint/actions'
@@ -105,7 +104,6 @@ export default function AddLiquidity() {
   const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
 
   // txn values
-  const deadline = useTransactionDeadline() // custom from users settings
   const allowedSlippage = useUserSlippageToleranceWithDefault(DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE) // custom from users
   const [txHash, setTxHash] = useState<string>('')
 
@@ -148,7 +146,7 @@ export default function AddLiquidity() {
     if (!chainId || isEmptyObj(library) || !account || !router) return
 
     const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
-    if (!parsedAmountA || !parsedAmountB || !currencyA || !currencyB || !deadline) {
+    if (!parsedAmountA || !parsedAmountB || !currencyA || !currencyB) {
       return
     }
 
@@ -171,7 +169,6 @@ export default function AddLiquidity() {
         amountsMin[tokenBIsHYDRA ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
         amountsMin[tokenBIsHYDRA ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // hydra min
         account,
-        deadline.toHexString(),
       ]
       value = BigNumber.from((tokenBIsHYDRA ? parsedAmountB : parsedAmountA).quotient.toString())
     } else {
@@ -185,7 +182,6 @@ export default function AddLiquidity() {
         amountsMin[Field.CURRENCY_A].toString(),
         amountsMin[Field.CURRENCY_B].toString(),
         account,
-        deadline.toHexString(),
       ]
       value = null
     }
