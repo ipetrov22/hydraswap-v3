@@ -1,5 +1,3 @@
-import { BigNumber } from '@ethersproject/bignumber'
-import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { sendEvent } from 'components/analytics'
@@ -14,11 +12,13 @@ import useAddHydraAccExtension, {
 import useHydra from 'hooks/useHydra'
 import { AbiHydraV2Router01 } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
+import { addLiquidity, addLiquidityHYDRA } from 'hydra/contracts/v2RouterFunctions'
 import { ChainId } from 'hydra/sdk'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Plus } from 'react-feather'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Text } from 'rebass'
+import { walletErrorCatch } from 'state/hydra/walletErrorCatch'
 import { useTheme } from 'styled-components/macro'
 
 import { ButtonError, ButtonLight, ButtonPrimary } from '../../components/Button'
@@ -43,7 +43,6 @@ import { useTransactionAdder } from '../../state/transactions/hooks'
 import { TransactionType } from '../../state/transactions/types'
 import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '../../state/user/hooks'
 import { ThemedText } from '../../theme'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { calculateSlippageAmount } from '../../utils/calculateSlippageAmount'
 import { currencyId } from '../../utils/currencyId'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
@@ -103,15 +102,29 @@ export default function AddLiquidity() {
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
   const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
 
+  // ======== WORKAROUND! THIS SHOULD BE FIXED FROM EXTENSION ========
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (attemptingTxn) {
+        setAttemptingTxn(false)
+      }
+      clearTimeout(timeout)
+    }, 5000)
+  }, [attemptingTxn])
+  // ======== WORKAROUND! THIS SHOULD BE FIXED FROM EXTENSION ========
+
   // txn values
   const allowedSlippage = useUserSlippageToleranceWithDefault(DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE) // custom from users
   const [txHash, setTxHash] = useState<string>('')
 
   // get formatted amounts
-  const formattedAmounts = {
-    [independentField]: typedValue,
-    [dependentField]: noLiquidity ? otherTypedValue : parsedAmounts[dependentField]?.toSignificant(6) ?? '',
-  }
+  const formattedAmounts = useMemo(
+    () => ({
+      [independentField]: typedValue,
+      [dependentField]: noLiquidity ? otherTypedValue : parsedAmounts[dependentField]?.toSignificant(6) ?? '',
+    }),
+    [dependentField, independentField, noLiquidity, otherTypedValue, parsedAmounts, typedValue]
+  )
 
   // get the max amounts user can add
   const maxAmounts: { [field in Field]?: CurrencyAmount<Currency> } = [Field.CURRENCY_A, Field.CURRENCY_B].reduce(
@@ -134,8 +147,6 @@ export default function AddLiquidity() {
     {}
   )
 
-  const router = getContract(library, V2_ROUTER_ADDRESS, AbiHydraV2Router01)
-
   // check whether the user has approved the router on the tokens
   const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], V2_ROUTER_ADDRESS)
   const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], V2_ROUTER_ADDRESS)
@@ -143,82 +154,75 @@ export default function AddLiquidity() {
   const addTransaction = useTransactionAdder()
 
   async function onAdd() {
-    if (!chainId || isEmptyObj(library) || !account || !router) return
+    try {
+      if (!chainId || isEmptyObj(library) || !account) return
 
-    const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
-    if (!parsedAmountA || !parsedAmountB || !currencyA || !currencyB) {
-      return
-    }
+      const router = getContract(library, V2_ROUTER_ADDRESS, AbiHydraV2Router01)
 
-    const amountsMin = {
-      [Field.CURRENCY_A]: calculateSlippageAmount(parsedAmountA, noLiquidity ? ZERO_PERCENT : allowedSlippage)[0],
-      [Field.CURRENCY_B]: calculateSlippageAmount(parsedAmountB, noLiquidity ? ZERO_PERCENT : allowedSlippage)[0],
-    }
+      const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
+      if (!parsedAmountA || !parsedAmountB || !currencyA || !currencyB) {
+        return
+      }
 
-    let estimate,
-      method: (...args: any) => Promise<TransactionResponse>,
-      args: Array<string | string[] | number>,
-      value: BigNumber | null
-    if (currencyA.isNative || currencyB.isNative) {
-      const tokenBIsHYDRA = currencyB.isNative
-      estimate = router.estimateGas.addLiquidityHYDRA
-      method = router.addLiquidityHYDRA
-      args = [
-        (tokenBIsHYDRA ? currencyA : currencyB)?.wrapped?.address ?? '', // token
-        (tokenBIsHYDRA ? parsedAmountA : parsedAmountB).quotient.toString(), // token desired
-        amountsMin[tokenBIsHYDRA ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
-        amountsMin[tokenBIsHYDRA ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // hydra min
-        account,
-      ]
-      value = BigNumber.from((tokenBIsHYDRA ? parsedAmountB : parsedAmountA).quotient.toString())
-    } else {
-      estimate = router.estimateGas.addLiquidity
-      method = router.addLiquidity
-      args = [
-        currencyA?.wrapped?.address ?? '',
-        currencyB?.wrapped?.address ?? '',
-        parsedAmountA.quotient.toString(),
-        parsedAmountB.quotient.toString(),
-        amountsMin[Field.CURRENCY_A].toString(),
-        amountsMin[Field.CURRENCY_B].toString(),
-        account,
-      ]
-      value = null
-    }
+      const amountsMin = {
+        [Field.CURRENCY_A]: calculateSlippageAmount(parsedAmountA, noLiquidity ? ZERO_PERCENT : allowedSlippage)[0],
+        [Field.CURRENCY_B]: calculateSlippageAmount(parsedAmountB, noLiquidity ? ZERO_PERCENT : allowedSlippage)[0],
+      }
 
-    setAttemptingTxn(true)
-    await estimate(...args, value ? { value } : {})
-      .then((estimatedGasLimit: BigNumber) =>
-        method(...args, {
-          ...(value ? { value } : {}),
-          gasLimit: calculateGasMargin(estimatedGasLimit),
-        }).then((response) => {
-          setAttemptingTxn(false)
+      setAttemptingTxn(true)
+      let tx
+      if (currencyA.isNative || currencyB.isNative) {
+        const tokenBIsHYDRA = currencyB.isNative
+        tx = await addLiquidityHYDRA(
+          router,
+          (tokenBIsHYDRA ? currencyA : currencyB)?.wrapped,
+          accountHydra,
+          (tokenBIsHYDRA ? parsedAmountA : parsedAmountB).quotient.toString(), // token desired
+          amountsMin[tokenBIsHYDRA ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
+          (tokenBIsHYDRA ? parsedAmountB : parsedAmountA).quotient.toString(), // hydra desired
+          amountsMin[tokenBIsHYDRA ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // hydra min
+          noLiquidity
+        )
+      } else {
+        tx = await addLiquidity(
+          router,
+          currencyA?.wrapped,
+          currencyB?.wrapped,
+          accountHydra,
+          parsedAmountA.quotient.toString(),
+          parsedAmountB.quotient.toString(),
+          amountsMin[Field.CURRENCY_A].toString(),
+          amountsMin[Field.CURRENCY_B].toString(),
+          noLiquidity
+        )
+      }
+      setAttemptingTxn(false)
 
-          addTransaction(response, {
-            type: TransactionType.ADD_LIQUIDITY_V2_POOL,
-            baseCurrencyId: currencyId(currencyA),
-            expectedAmountBaseRaw: parsedAmounts[Field.CURRENCY_A]?.quotient.toString() ?? '0',
-            quoteCurrencyId: currencyId(currencyB),
-            expectedAmountQuoteRaw: parsedAmounts[Field.CURRENCY_B]?.quotient.toString() ?? '0',
-          })
-
-          setTxHash(response.hash)
-
-          sendEvent({
-            category: 'Liquidity',
-            action: 'Add',
-            label: [currencies[Field.CURRENCY_A]?.symbol, currencies[Field.CURRENCY_B]?.symbol].join('/'),
-          })
-        })
-      )
-      .catch((error: { code: number }) => {
-        setAttemptingTxn(false)
-        // we only care if the error is something _other_ than the user rejected the tx
-        if (error?.code !== 4001) {
-          console.error(error)
-        }
+      if (walletErrorCatch(tx)) {
+        return
+      }
+      tx.hash = tx.id
+      addTransaction(tx, {
+        type: TransactionType.ADD_LIQUIDITY_V2_POOL,
+        baseCurrencyId: currencyId(currencyA),
+        expectedAmountBaseRaw: parsedAmounts[Field.CURRENCY_A]?.quotient.toString() ?? '0',
+        quoteCurrencyId: currencyId(currencyB),
+        expectedAmountQuoteRaw: parsedAmounts[Field.CURRENCY_B]?.quotient.toString() ?? '0',
       })
+
+      setTxHash(tx.id)
+
+      sendEvent({
+        category: 'Liquidity',
+        action: 'Add',
+        label: [currencies[Field.CURRENCY_A]?.symbol, currencies[Field.CURRENCY_B]?.symbol].join('/'),
+      })
+    } catch (error) {
+      setAttemptingTxn(false)
+      if (error?.code !== 4001) {
+        console.error(error)
+      }
+    }
   }
 
   const modalHeader = () => {
@@ -316,9 +320,11 @@ export default function AddLiquidity() {
     // if there was a tx hash, we want to clear the input
     if (txHash) {
       onFieldAInput('')
+      formattedAmounts[Field.CURRENCY_A] = ''
+      formattedAmounts[Field.CURRENCY_B] = ''
     }
     setTxHash('')
-  }, [onFieldAInput, txHash])
+  }, [onFieldAInput, txHash, formattedAmounts])
 
   const { pathname } = useLocation()
   const isCreate = pathname.includes('/create')
