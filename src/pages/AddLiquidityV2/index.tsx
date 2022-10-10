@@ -179,7 +179,7 @@ export default function AddLiquidity() {
           accountHydra,
           (tokenBIsHYDRA ? parsedAmountA : parsedAmountB).quotient.toString(), // token desired
           amountsMin[tokenBIsHYDRA ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
-          (tokenBIsHYDRA ? parsedAmountB : parsedAmountA).quotient.toString(), // hydra desired
+          (tokenBIsHYDRA ? parsedAmountB : parsedAmountA).toExact(), // hydra desired
           amountsMin[tokenBIsHYDRA ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // hydra min
           noLiquidity
         )
