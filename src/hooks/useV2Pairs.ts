@@ -36,6 +36,9 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
 
   return useMemo(() => {
     return results.map((result, i) => {
+      if (!tokens[i] || !result?.result || !result?.result?.reserve0 || !result?.result?.reserve1)
+        return [PairState.NOT_EXISTS, null]
+
       const { result: reserves, loading } = result
       const tokenA = tokens[i][0]
       const tokenB = tokens[i][1]
