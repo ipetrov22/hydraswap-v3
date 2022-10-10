@@ -1,13 +1,9 @@
-import { Interface } from '@ethersproject/abi'
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
-import { abi as IUniswapV2PairABI } from '@uniswap/v2-core/build/IUniswapV2Pair.json'
-import { computePairAddress, Pair } from '@uniswap/v2-sdk'
-import { useMultipleContractSingleData } from 'lib/hooks/multicall'
+import { computePairAddress, Pair } from 'hydra-v2-sdk'
 import { useMemo } from 'react'
 
 import { V2_FACTORY_ADDRESSES } from '../constants/addresses'
-
-const PAIR_INTERFACE = new Interface(IUniswapV2PairABI)
+import { useGetReserves } from './useV2PairFunctions'
 
 export enum PairState {
   LOADING,
@@ -36,10 +32,13 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
     [tokens]
   )
 
-  const results = useMultipleContractSingleData(pairAddresses, PAIR_INTERFACE, 'getReserves')
+  const results = useGetReserves(pairAddresses)
 
   return useMemo(() => {
     return results.map((result, i) => {
+      if (!tokens[i] || !result?.result || !result?.result?.reserve0 || !result?.result?.reserve1)
+        return [PairState.NOT_EXISTS, null]
+
       const { result: reserves, loading } = result
       const tokenA = tokens[i][0]
       const tokenB = tokens[i][1]

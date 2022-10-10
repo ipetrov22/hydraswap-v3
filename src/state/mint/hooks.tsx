@@ -1,13 +1,13 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, Price, Token } from '@uniswap/sdk-core'
-import { Pair } from '@uniswap/v2-sdk'
 import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import { Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
 import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 import { ReactNode, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
-import { useTotalSupply } from '../../hooks/useTotalSupply'
+import { useTotalSupplyHydra } from '../../hooks/useTotalSupply'
 import { PairState, useV2Pair } from '../../hooks/useV2Pairs'
 import { useCurrencyBalances } from '../connection/hooks'
 import { AppState } from '../index'
@@ -61,7 +61,7 @@ export function useDerivedMintInfo(
   poolTokenPercentage?: Percent
   error?: ReactNode
 } {
-  const account = accountHydra.address
+  const account = accountHydra?.address
 
   const { independentField, typedValue, otherTypedValue } = useMintState()
 
@@ -78,7 +78,7 @@ export function useDerivedMintInfo(
 
   // pair
   const [pairState, pair] = useV2Pair(currencies[Field.CURRENCY_A], currencies[Field.CURRENCY_B])
-  const totalSupply = useTotalSupply(pair?.liquidityToken)
+  const totalSupply = useTotalSupplyHydra(pair?.liquidityToken)
 
   const noLiquidity: boolean =
     pairState === PairState.NOT_EXISTS ||
