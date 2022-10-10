@@ -1,14 +1,12 @@
 import { Trans } from '@lingui/macro'
 import { Currency } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
 import Badge from 'components/Badge'
 import { getChainInfo } from 'constants/chainInfo'
 import { SupportedL2ChainId } from 'constants/chains'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
 import { ChainId } from 'hydra/sdk'
-import useCurrencyLogoURIs from 'lib/hooks/useCurrencyLogoURIs'
-import { ReactNode, useCallback, useState } from 'react'
-import { AlertCircle, AlertTriangle, ArrowUpCircle, CheckCircle } from 'react-feather'
+import { ReactNode } from 'react'
+import { AlertCircle, AlertTriangle, ArrowUpCircle } from 'react-feather'
 import { Text } from 'rebass'
 import { useIsTransactionConfirmed, useTransaction } from 'state/transactions/hooks'
 import styled, { useTheme } from 'styled-components/macro'
@@ -19,7 +17,7 @@ import { ExternalLink, ThemedText } from '../../theme'
 import { CloseIcon, CustomLightSpinner } from '../../theme'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { TransactionSummary } from '../AccountDetails/TransactionSummary'
-import { ButtonLight, ButtonPrimary } from '../Button'
+import { ButtonPrimary } from '../Button'
 import { AutoColumn, ColumnCenter } from '../Column'
 import Modal from '../Modal'
 import { RowBetween, RowFixed } from '../Row'
@@ -120,39 +118,16 @@ function TransactionSubmittedContent({
   onDismiss,
   chainId,
   hash,
-  currencyToAdd,
   inline,
 }: {
   onDismiss: () => void
   hash: string | undefined
   chainId: number
-  currencyToAdd?: Currency | undefined
   inline?: boolean // not in modal
 }) {
   const theme = useTheme()
-
-  const { connector } = useWeb3React()
-
-  const token = currencyToAdd?.wrapped
-  const logoURL = useCurrencyLogoURIs(token)[0]
-
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
-
-  const [success, setSuccess] = useState<boolean | undefined>()
-
-  const addToken = useCallback(() => {
-    if (!token?.symbol || !connector.watchAsset) return
-    connector
-      .watchAsset({
-        address: token.address,
-        symbol: token.symbol,
-        decimals: token.decimals,
-        image: logoURL,
-      })
-      .then(() => setSuccess(true))
-      .catch(() => setSuccess(false))
-  }, [connector, logoURL, token])
 
   return redesignFlagEnabled ? (
     <Wrapper>
@@ -170,29 +145,11 @@ function TransactionSubmittedContent({
           <ThemedText.MediumHeader textAlign="center">
             <Trans>Transaction submitted</Trans>
           </ThemedText.MediumHeader>
-          {currencyToAdd && connector.watchAsset && (
-            <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addToken}>
-              {!success ? (
-                <RowFixed>
-                  <Trans>Add {currencyToAdd.symbol}</Trans>
-                </RowFixed>
-              ) : (
-                <RowFixed>
-                  <Trans>Added {currencyToAdd.symbol} </Trans>
-                  <CheckCircle size={'16px'} stroke={theme.deprecated_green1} style={{ marginLeft: '6px' }} />
-                </RowFixed>
-              )}
-            </ButtonLight>
-          )}
-          <ButtonPrimary onClick={onDismiss} style={{ margin: '20px 0 0 0' }}>
-            <Text fontWeight={600} fontSize={20} color={theme.accentTextLightPrimary}>
-              {inline ? <Trans>Return</Trans> : <Trans>Close</Trans>}
-            </Text>
-          </ButtonPrimary>
+
           {chainId && hash && (
             <ExternalLink href={getExplorerLink(chainId, hash, ExplorerDataType.TRANSACTION)}>
               <Text fontWeight={600} fontSize={14} color={theme.accentAction}>
-                <Trans>View on Etherscan</Trans>
+                <Trans>View on Hydrachain Explorer</Trans>
               </Text>
             </ExternalLink>
           )}
@@ -222,20 +179,7 @@ function TransactionSubmittedContent({
               </Text>
             </ExternalLink>
           )}
-          {currencyToAdd && connector.watchAsset && (
-            <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addToken}>
-              {!success ? (
-                <RowFixed>
-                  <Trans>Add {currencyToAdd.symbol}</Trans>
-                </RowFixed>
-              ) : (
-                <RowFixed>
-                  <Trans>Added {currencyToAdd.symbol} </Trans>
-                  <CheckCircle size={'16px'} stroke={theme.deprecated_green1} style={{ marginLeft: '6px' }} />
-                </RowFixed>
-              )}
-            </ButtonLight>
-          )}
+
           <ButtonPrimary onClick={onDismiss} style={{ margin: '20px 0 0 0' }}>
             <Text fontWeight={500} fontSize={20}>
               {inline ? <Trans>Return</Trans> : <Trans>Close</Trans>}
@@ -445,7 +389,6 @@ export default function TransactionConfirmationModal({
   hash,
   pendingText,
   content,
-  currencyToAdd,
 }: ConfirmationModalProps) {
   const chainId = ChainId.MAINNET
   const redesignFlag = useRedesignFlag()
@@ -461,12 +404,7 @@ export default function TransactionConfirmationModal({
       ) : attemptingTxn ? (
         <ConfirmationPendingContent onDismiss={onDismiss} pendingText={pendingText} />
       ) : hash ? (
-        <TransactionSubmittedContent
-          chainId={chainId}
-          hash={hash}
-          onDismiss={onDismiss}
-          currencyToAdd={currencyToAdd}
-        />
+        <TransactionSubmittedContent chainId={chainId} hash={hash} onDismiss={onDismiss} />
       ) : (
         content()
       )}
