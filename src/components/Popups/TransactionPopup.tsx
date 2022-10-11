@@ -14,14 +14,13 @@ const RowNoFlex = styled(AutoRow)`
   flex-wrap: nowrap;
 `
 
-export default function TransactionPopup({ hash }: { hash: string }) {
+export default function TransactionPopup({ hash, success }: { hash: string; success: boolean | undefined }) {
   const { chainId } = useWeb3React()
 
   const tx = useTransaction(hash)
   const theme = useTheme()
 
   if (!tx) return null
-  const success = Boolean(tx.receipt && tx.receipt.status === 1)
 
   return (
     <RowNoFlex>
