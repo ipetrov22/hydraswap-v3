@@ -1,13 +1,13 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
 import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 import { ReactNode, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
-import { useTotalSupply } from '../../hooks/useTotalSupply'
+import { useTotalSupplyHydra } from '../../hooks/useTotalSupply'
 import { useV2Pair } from '../../hooks/useV2Pairs'
 import { useTokenBalances } from '../connection/hooks'
 import { AppState } from '../index'
@@ -30,7 +30,7 @@ export function useDerivedBurnInfo(
   }
   error?: ReactNode
 } {
-  const { account } = useWeb3React()
+  const [account] = useHydraWalletAddress()
 
   const { independentField, typedValue } = useBurnState()
 
@@ -49,7 +49,7 @@ export function useDerivedBurnInfo(
   }
 
   // liquidity values
-  const totalSupply = useTotalSupply(pair?.liquidityToken)
+  const totalSupply = useTotalSupplyHydra(pair?.liquidityToken)
   const liquidityValueA =
     pair &&
     totalSupply &&
