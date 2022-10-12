@@ -1,5 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { account, hydraweb3RPC, useHydraAccount } from 'hooks/useAddHydraAccExtension'
+import { account, hydraweb3RPC, useHydraAccount, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
 import { addressGetBalancesResolver } from 'hydra/contracts/contractAddresses'
 import { balanceOf } from 'hydra/contracts/tokenFunctions'
 import { allPairs, allPairsLength } from 'hydra/contracts/v2FactoryFunctions'
@@ -80,6 +80,7 @@ export function useBalancesOf(tokenAddresses: string[]): CallState[] {
 
 export function usePairBalancesOf(tokenAddresses: string[]): CallState[] {
   const [account] = useHydraAccount()
+  const [hydraweb3RPC] = useHydraLibrary()
   const [balances, setBalances] = useState<CallState[]>([])
   const tokenAddressesStringified = useMemo(() => JSON.stringify(tokenAddresses), [tokenAddresses])
 
@@ -143,7 +144,7 @@ export function usePairBalancesOf(tokenAddresses: string[]): CallState[] {
     return () => {
       setBalances([])
     }
-  }, [tokenAddressesStringified, account])
+  }, [tokenAddressesStringified, account, hydraweb3RPC])
 
   return balances
 }

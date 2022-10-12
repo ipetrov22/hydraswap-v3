@@ -6,6 +6,7 @@ import { useHydraAccount } from 'hooks/useAddHydraAccExtension'
 import { ChainId } from 'hydra/sdk'
 import { Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
+import { usePairBalancesWithLoadingIndicator } from 'lib/hooks/useCurrencyBalance'
 import { useMemo } from 'react'
 import { ChevronsRight } from 'react-feather'
 import { Link } from 'react-router-dom'
@@ -22,7 +23,6 @@ import { Dots } from '../../components/swap/styleds'
 import { SwitchLocaleLink } from '../../components/SwitchLocaleLink'
 import { BIG_INT_ZERO } from '../../constants/misc'
 import { useV2Pairs } from '../../hooks/useV2Pairs'
-import { useTokenBalancesWithLoadingIndicator } from '../../state/connection/hooks'
 import { useStakingInfo } from '../../state/stake/hooks'
 import { toV2LiquidityToken, useTrackedTokenPairs } from '../../state/user/hooks'
 import { ExternalLink, HideSmall, ThemedText } from '../../theme'
@@ -106,7 +106,7 @@ export default function Pool() {
     () => tokenPairsWithLiquidityTokens.map((tpwlt) => tpwlt.liquidityToken),
     [tokenPairsWithLiquidityTokens]
   )
-  const [v2PairsBalances, fetchingV2PairBalances] = useTokenBalancesWithLoadingIndicator(
+  const [v2PairsBalances, fetchingV2PairBalances] = usePairBalancesWithLoadingIndicator(
     account ?? undefined,
     liquidityTokens
   )

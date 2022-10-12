@@ -4,7 +4,7 @@ import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
 import JSBI from 'jsbi'
 import { useSingleContractMultipleData } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
-import { usePairBalancesOf } from 'state/hydra/hrc20calls'
+import { useBalancesOf, usePairBalancesOf } from 'state/hydra/hrc20calls'
 import { useHYDRABalance } from 'state/wallets/hooks'
 
 import { nativeOnChain } from '../../constants/tokens'
@@ -61,7 +61,7 @@ export function useTokenBalancesWithLoadingIndicator(
     () => validatedTokens.map((vt) => vt.address?.toLowerCase()),
     [validatedTokens]
   )
-  const balances = usePairBalancesOf(validatedTokenAddresses)
+  const balances = useBalancesOf(validatedTokenAddresses)
   const anyLoading: boolean = useMemo(() => balances.some((callState) => callState.loading), [balances])
 
   return useMemo(
@@ -80,6 +80,42 @@ export function useTokenBalancesWithLoadingIndicator(
     ],
     [address, validatedTokens, anyLoading, balances]
   )
+}
+
+export function usePairBalancesWithLoadingIndicator(
+  address?: string,
+  tokens?: (Token | undefined)[]
+): [{ [tokenAddress: string]: CurrencyAmount<Token> | undefined }, boolean] {
+  const validatedTokens: Token[] = useMemo(
+    () => tokens?.filter((t?: Token): t is Token => isAddress(t?.address) !== false) ?? [],
+    [tokens]
+  )
+
+  const validatedTokenAddresses = useMemo(
+    () => validatedTokens.map((vt) => vt.address.toLowerCase()),
+    [validatedTokens]
+  )
+
+  const balances = usePairBalancesOf(validatedTokenAddresses)
+  const anyLoading: boolean = useMemo(() => balances.some((callState) => callState.loading), [balances])
+
+  return [
+    useMemo(
+      () =>
+        address && validatedTokens.length > 0
+          ? validatedTokens.reduce<{ [tokenAddress: string]: CurrencyAmount<Token> | undefined }>((memo, token, i) => {
+              const value = balances?.[i]?.result?.[0]
+              const amount = value ? JSBI.BigInt(value.toString()) : undefined
+              if (amount) {
+                memo[token.address] = CurrencyAmount.fromRawAmount(token, amount)
+              }
+              return memo
+            }, {})
+          : {},
+      [address, validatedTokens, balances]
+    ),
+    anyLoading,
+  ]
 }
 
 export function useTokenBalances(
