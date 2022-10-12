@@ -4,7 +4,7 @@ import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
 import JSBI from 'jsbi'
 import { useSingleContractMultipleData } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
-import { useBalancesOf } from 'state/hydra/hrc20calls'
+import { usePairBalancesOf } from 'state/hydra/hrc20calls'
 import { useHYDRABalance } from 'state/wallets/hooks'
 
 import { nativeOnChain } from '../../constants/tokens'
@@ -57,10 +57,11 @@ export function useTokenBalancesWithLoadingIndicator(
     () => tokens?.filter((t?: Token): t is Token => isAddress(t?.address) !== false) ?? [],
     [tokens]
   )
-  const validatedTokenAddresses = useMemo(() => validatedTokens.map((vt) => vt.address), [validatedTokens])
-
-  const balances = useBalancesOf(validatedTokenAddresses)
-
+  const validatedTokenAddresses = useMemo(
+    () => validatedTokens.map((vt) => vt.address?.toLowerCase()),
+    [validatedTokens]
+  )
+  const balances = usePairBalancesOf(validatedTokenAddresses)
   const anyLoading: boolean = useMemo(() => balances.some((callState) => callState.loading), [balances])
 
   return useMemo(

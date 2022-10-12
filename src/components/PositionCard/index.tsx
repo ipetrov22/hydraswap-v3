@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
 import { transparentize } from 'polished'
@@ -158,8 +159,7 @@ export function MinimalPositionCard({ pair, showUnwrapped = false, border }: Pos
 }
 
 export default function FullPositionCard({ pair, border, stakedBalance }: PositionCardProps) {
-  const { account } = useWeb3React()
-
+  const [account] = useHydraWalletAddress()
   const currency0 = unwrappedToken(pair.token0)
   const currency1 = unwrappedToken(pair.token1)
 

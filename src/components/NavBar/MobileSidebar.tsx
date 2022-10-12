@@ -181,7 +181,7 @@ export const MobileSideBar = () => {
                   </Icon>
                   Vote in governance
                 </ExtraLinkRow>
-                <ExtraLinkRow href="https://info.uniswap.org/#/" close={toggleOpen}>
+                <ExtraLinkRow href="https://info.hydradex.org/" close={toggleOpen}>
                   <Icon>
                     <BarChartIconMobile width={24} height={24} />
                   </Icon>

@@ -135,7 +135,7 @@ export const MenuDropdown = () => {
                   </Icon>
                   <PrimaryMenuRow.Text>Vote in governance</PrimaryMenuRow.Text>
                 </PrimaryMenuRow>
-                <PrimaryMenuRow href="https://info.uniswap.org/#/">
+                <PrimaryMenuRow href="https://info.hydradex.org/">
                   <Icon>
                     <BarChartIcon width={24} height={24} />
                   </Icon>

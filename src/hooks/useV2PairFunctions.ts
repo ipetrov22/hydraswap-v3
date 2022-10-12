@@ -3,7 +3,7 @@ import { hydraweb3RPC, useHydraWalletAddress } from 'hooks/useAddHydraAccExtensi
 import { AbiHydraV2Pair } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
 import { getReserves } from 'hydra/contracts/v2PairFunctions'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CallState, Result } from 'state/hydra/hrc20calls'
 
 const getResult = (reserve0: BigNumber, reserve1: BigNumber) => {
@@ -15,12 +15,14 @@ const getResult = (reserve0: BigNumber, reserve1: BigNumber) => {
 
 export function useGetReserves(pairAddresses: (string | undefined)[]): CallState[] {
   const [account] = useHydraWalletAddress()
+  const pairAddressesStringified = useMemo(() => JSON.stringify(pairAddresses), [pairAddresses])
 
   const [reserves, setReserves] = useState<CallState[]>([
     { valid: false, result: undefined, loading: false, syncing: false, error: false },
   ] as CallState[])
 
   useEffect(() => {
+    const pairAddresses = JSON.parse(pairAddressesStringified)
     if (pairAddresses?.length < 1 || !account) return
     ;(async () => {
       const reserves: CallState[] = []
@@ -55,7 +57,7 @@ export function useGetReserves(pairAddresses: (string | undefined)[]): CallState
     return () => {
       setReserves([{ valid: false, result: undefined, loading: false, syncing: false, error: false }] as CallState[])
     }
-  }, [pairAddresses, account])
+  }, [pairAddressesStringified, account])
 
   return reserves
 }

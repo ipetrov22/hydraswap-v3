@@ -1,6 +1,7 @@
 import { Percent, Token } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
 import { SupportedLocale } from 'constants/locales'
+import { ChainId } from 'hydra/sdk'
 import { computePairAddress, Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
 import { useCallback, useMemo } from 'react'
@@ -275,9 +276,9 @@ export function toV2LiquidityToken([tokenA, tokenB]: [Token, Token]): Token {
   return new Token(
     tokenA.chainId,
     computePairAddress({ factoryAddress: V2_FACTORY_ADDRESSES[tokenA.chainId], tokenA, tokenB }),
-    18,
-    'UNI-V2',
-    'Uniswap V2'
+    8,
+    'HYD',
+    'Hydraswap'
   )
 }
 
@@ -285,7 +286,7 @@ export function toV2LiquidityToken([tokenA, tokenB]: [Token, Token]): Token {
  * Returns all the pairs of tokens that are tracked by the user for the current chain ID.
  */
 export function useTrackedTokenPairs(): [Token, Token][] {
-  const { chainId } = useWeb3React()
+  const chainId = ChainId.MAINNET
   const tokens = useAllTokens()
 
   // pinned pairs
