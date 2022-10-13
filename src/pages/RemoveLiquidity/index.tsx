@@ -3,7 +3,7 @@ import { Currency, Percent } from '@uniswap/sdk-core'
 import { ElementName, Event, EventName } from 'components/AmplitudeAnalytics/constants'
 import { TraceEvent } from 'components/AmplitudeAnalytics/TraceEvent'
 import { V2_ROUTER_ADDRESS } from 'constants/addresses'
-import useAddHydraAccExtension, { hydraweb3RPC, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
+import useAddHydraAccExtension, { hydraweb3RPC, useHydraAccount } from 'hooks/useAddHydraAccExtension'
 import useHydra from 'hooks/useHydra'
 import { AbiHydraV2Router01 } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
@@ -51,7 +51,7 @@ export default function RemoveLiquidity() {
 
   const { walletExtension, hydraweb3Extension } = useHydra()
   useAddHydraAccExtension(walletExtension, hydraweb3Extension)
-  const [account] = useHydraWalletAddress()
+  const [account] = useHydraAccount()
   const chainId = ChainId.MAINNET
 
   const { currencyIdA, currencyIdB } = useParams<{ currencyIdA: string; currencyIdB: string }>()
@@ -101,7 +101,7 @@ export default function RemoveLiquidity() {
 
   // allowance handling
   const [approval, approveCallback] = useApproveCallback(parsedAmounts[Field.LIQUIDITY], V2_ROUTER_ADDRESS)
-  console.log(approval)
+
   async function onAttemptToApprove() {
     // const pairContract: Contract | null = usePairContract(pair?.liquidityToken?.address)
     if (!pair) throw new Error('missing dependencies')
@@ -139,7 +139,7 @@ export default function RemoveLiquidity() {
   async function onRemove() {
     const router = getContract(hydraweb3RPC, V2_ROUTER_ADDRESS, AbiHydraV2Router01)
 
-    if (!chainId || !account || !router) throw new Error('missing dependencies')
+    if (!chainId || !account?.address || !router) throw new Error('missing dependencies')
     const { [Field.CURRENCY_A]: currencyAmountA, [Field.CURRENCY_B]: currencyAmountB } = parsedAmounts
     if (!currencyAmountA || !currencyAmountB) {
       throw new Error('missing currency amounts')
@@ -189,7 +189,8 @@ export default function RemoveLiquidity() {
     if (walletErrorCatch(tx)) {
       return
     }
-    tx.hash = tx.txid
+    tx.hash = tx.id
+    setTxHash(tx.id)
     addTransaction(tx, {
       type: TransactionType.REMOVE_LIQUIDITY_V3,
       baseCurrencyId: currencyId(currencyA),
@@ -249,7 +250,7 @@ export default function RemoveLiquidity() {
         <RowBetween>
           <Text color={theme.deprecated_text2} fontWeight={500} fontSize={16}>
             <Trans>
-              UNI {currencyA?.symbol}/{currencyB?.symbol} Burned
+              HYD {currencyA?.symbol}/{currencyB?.symbol} Burned
             </Trans>
           </Text>
           <RowFixed>
@@ -288,7 +289,7 @@ export default function RemoveLiquidity() {
 
   const pendingText = (
     <Trans>
-      Removing {parsedAmounts[Field.CURRENCY_A]?.toSignificant(6)} {currencyA?.symbol} and
+      Removing {parsedAmounts[Field.CURRENCY_A]?.toSignificant(6)} {currencyA?.symbol} and{' '}
       {parsedAmounts[Field.CURRENCY_B]?.toSignificant(6)} {currencyB?.symbol}
     </Trans>
   )
@@ -332,6 +333,8 @@ export default function RemoveLiquidity() {
 
   const handleDismissConfirmation = useCallback(() => {
     setShowConfirm(false)
+    setAttemptingTxn(false)
+
     // if there was a tx hash, we want to clear the input
     if (txHash) {
       onUserInput(Field.LIQUIDITY_PERCENT, '0')
@@ -539,7 +542,7 @@ export default function RemoveLiquidity() {
               </div>
             )}
             <div style={{ position: 'relative' }}>
-              {!account ? (
+              {!account?.address ? (
                 <TraceEvent
                   events={[Event.onClick]}
                   name={EventName.CONNECT_WALLET_BUTTON_CLICKED}

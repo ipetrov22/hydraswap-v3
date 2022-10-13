@@ -14,7 +14,7 @@ import { AbiHydraV2Router01 } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
 import { addLiquidity, addLiquidityHYDRA } from 'hydra/contracts/v2RouterFunctions'
 import { ChainId } from 'hydra/sdk'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Plus } from 'react-feather'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Text } from 'rebass'
@@ -101,17 +101,6 @@ export default function AddLiquidity() {
   // modal and loading
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
   const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
-
-  // ======== WORKAROUND! THIS SHOULD BE FIXED FROM EXTENSION ========
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (attemptingTxn) {
-        setAttemptingTxn(false)
-      }
-      clearTimeout(timeout)
-    }, 5000)
-  }, [attemptingTxn])
-  // ======== WORKAROUND! THIS SHOULD BE FIXED FROM EXTENSION ========
 
   // txn values
   const allowedSlippage = useUserSlippageToleranceWithDefault(DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE) // custom from users
@@ -317,6 +306,7 @@ export default function AddLiquidity() {
 
   const handleDismissConfirmation = useCallback(() => {
     setShowConfirm(false)
+    setAttemptingTxn(false)
     // if there was a tx hash, we want to clear the input
     if (txHash) {
       onFieldAInput('')

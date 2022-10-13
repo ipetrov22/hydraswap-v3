@@ -84,6 +84,7 @@ export function useApproval(
 
     return approveToken(spender, tokenContract, account, MaxUint256)
       .then((response) => {
+        response.hash = response.txid
         return {
           response,
           tokenAddress: token.address,
