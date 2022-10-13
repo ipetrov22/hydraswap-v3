@@ -40,12 +40,15 @@ const getResult = (e: BigNumber) => {
 }
 
 export function useBalancesOf(tokenAddresses: string[]): CallState[] {
+  const tokenAddressesStringifed = JSON.stringify(tokenAddresses)
   const [balances, setBalances] = useState<CallState[]>([])
+
   useEffect(() => {
     if (isEmpty(hydraweb3RPC) || !account?.loggedIn) {
       setBalances([{ valid: true, result: undefined, loading: false, syncing: false, error: false }])
       return
     }
+    const tokenAddresses = JSON.parse(tokenAddressesStringifed)
     if (tokenAddresses.length > 0) {
       ;(async () => {
         try {
@@ -73,7 +76,7 @@ export function useBalancesOf(tokenAddresses: string[]): CallState[] {
     return () => {
       setBalances([])
     }
-  }, [tokenAddresses])
+  }, [tokenAddressesStringifed])
 
   return balances
 }
