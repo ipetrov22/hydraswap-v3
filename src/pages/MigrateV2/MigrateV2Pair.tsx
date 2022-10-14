@@ -3,7 +3,6 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { CurrencyAmount, Fraction, Percent, Price, Token } from '@uniswap/sdk-core'
 import { FeeAmount, Pool, Position, priceToClosestTick, TickMath } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
 import { sendEvent } from 'components/analytics'
 import Badge, { BadgeVariant } from 'components/Badge'
 import { ButtonConfirmed } from 'components/Button'
@@ -14,11 +13,13 @@ import RangeSelector from 'components/RangeSelector'
 import RateToggle from 'components/RateToggle'
 import SettingsTab from 'components/Settings'
 import { Dots } from 'components/swap/styleds'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { PoolState, usePool } from 'hooks/usePools'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { useV2LiquidityTokenPermit } from 'hooks/useV2LiquidityTokenPermit'
+import { ChainId } from 'hydra/sdk'
 import JSBI from 'jsbi'
 import { NEVER_RELOAD, useSingleCallResult } from 'lib/hooks/multicall'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
@@ -124,7 +125,8 @@ function V2PairMigration({
   token0: Token
   token1: Token
 }) {
-  const { chainId, account } = useWeb3React()
+  const [account] = useHydraWalletAddress()
+  const chainId = ChainId.MAINNET
   const theme = useTheme()
   const v2FactoryAddress = chainId ? V2_FACTORY_ADDRESSES[chainId] : undefined
 
@@ -673,7 +675,8 @@ export default function MigrateV2Pair() {
     }
   }, [dispatch])
 
-  const { chainId, account } = useWeb3React()
+  const [account] = useHydraWalletAddress()
+  const chainId = ChainId.MAINNET
 
   // get pair contract
   const validatedAddress = isAddress(address)

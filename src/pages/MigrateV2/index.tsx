@@ -2,12 +2,13 @@ import { getCreate2Address } from '@ethersproject/address'
 import { keccak256, pack } from '@ethersproject/solidity'
 import { Trans } from '@lingui/macro'
 import { Token } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
-import MigrateSushiPositionCard from 'components/PositionCard/Sushi'
 import MigrateV2PositionCard from 'components/PositionCard/V2'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { PairState, useV2Pairs } from 'hooks/useV2Pairs'
+import { ChainId } from 'hydra/sdk'
 import { Pair } from 'hydra-v2-sdk'
+import { usePairBalancesWithLoadingIndicator } from 'lib/hooks/useCurrencyBalance'
 import { ReactNode, useMemo } from 'react'
 import { Text } from 'rebass'
 import { useTheme } from 'styled-components/macro'
@@ -18,7 +19,6 @@ import QuestionHelper from '../../components/QuestionHelper'
 import { AutoRow } from '../../components/Row'
 import { Dots } from '../../components/swap/styleds'
 import { V2_FACTORY_ADDRESSES } from '../../constants/addresses'
-import { useTokenBalancesWithLoadingIndicator } from '../../state/connection/hooks'
 import { toV2LiquidityToken, useTrackedTokenPairs } from '../../state/user/hooks'
 import { BackArrow, StyledInternalLink, ThemedText } from '../../theme'
 import { BodyWrapper } from '../AppBody'
@@ -52,7 +52,8 @@ function toSushiLiquidityToken([tokenA, tokenB]: [Token, Token]): Token {
 
 export default function MigrateV2() {
   const theme = useTheme()
-  const { account, chainId } = useWeb3React()
+  const [account] = useHydraWalletAddress()
+  const chainId = ChainId.MAINNET
 
   const v2FactoryAddress = chainId ? V2_FACTORY_ADDRESSES[chainId] : undefined
 
@@ -85,7 +86,7 @@ export default function MigrateV2() {
   }, [tokenPairsWithLiquidityTokens])
 
   // fetch pair balances
-  const [pairBalances, fetchingPairBalances] = useTokenBalancesWithLoadingIndicator(
+  const [pairBalances, fetchingPairBalances] = usePairBalancesWithLoadingIndicator(
     account ?? undefined,
     allLiquidityTokens
   )
@@ -97,15 +98,6 @@ export default function MigrateV2() {
     return tokenPairsWithLiquidityTokens
       .filter(({ v2liquidityToken }) => v2liquidityToken && pairBalances[v2liquidityToken.address]?.greaterThan(0))
       .map((tokenPairsWithLiquidityTokens) => tokenPairsWithLiquidityTokens.tokens)
-  }, [fetchingPairBalances, tokenPairsWithLiquidityTokens, pairBalances])
-
-  // filter for v2 liquidity tokens that the user has a balance in
-  const tokenPairsWithSushiBalance = useMemo(() => {
-    if (fetchingPairBalances) return []
-
-    return tokenPairsWithLiquidityTokens.filter(
-      ({ sushiLiquidityToken }) => !!sushiLiquidityToken && pairBalances[sushiLiquidityToken.address]?.greaterThan(0)
-    )
   }, [fetchingPairBalances, tokenPairsWithLiquidityTokens, pairBalances])
 
   const v2Pairs = useV2Pairs(tokenPairsWithV2Balance)
@@ -153,17 +145,6 @@ export default function MigrateV2() {
                 .map(([, pair]) => (
                   <MigrateV2PositionCard key={(pair as Pair).liquidityToken.address} pair={pair as Pair} />
                 ))}
-
-              {tokenPairsWithSushiBalance.map(({ sushiLiquidityToken, tokens }) => {
-                return (
-                  <MigrateSushiPositionCard
-                    key={(sushiLiquidityToken as Token).address}
-                    tokenA={tokens[0]}
-                    tokenB={tokens[1]}
-                    liquidityToken={sushiLiquidityToken as Token}
-                  />
-                )
-              })}
             </>
           ) : (
             <EmptyState message={<Trans>No V2 Liquidity found.</Trans>} />
