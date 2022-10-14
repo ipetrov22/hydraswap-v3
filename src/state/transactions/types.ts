@@ -194,4 +194,5 @@ export interface TransactionDetails {
   confirmedTime?: number
   from: string
   info: TransactionInfo
+  summary?: string
 }

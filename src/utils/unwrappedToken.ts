@@ -1,12 +1,8 @@
 import { Currency } from '@uniswap/sdk-core'
-
-import { nativeOnChain, WRAPPED_NATIVE_CURRENCY } from '../constants/tokens'
-import { supportedChainId } from './supportedChainId'
+import { ChainId, HYDRA, WHYDRA } from 'hydra/sdk'
 
 export function unwrappedToken(currency: Currency): Currency {
-  if (currency.isNative) return currency
-  const formattedChainId = supportedChainId(currency.chainId)
-  if (formattedChainId && WRAPPED_NATIVE_CURRENCY[formattedChainId]?.equals(currency))
-    return nativeOnChain(currency.chainId)
+  const chainId = ChainId.MAINNET
+  if (currency.equals(WHYDRA[chainId])) return HYDRA
   return currency
 }

@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
 import { transparentize } from 'polished'
@@ -12,12 +13,12 @@ import styled from 'styled-components/macro'
 
 import { BIG_INT_ZERO } from '../../constants/misc'
 import { useColor } from '../../hooks/useColor'
-import { useTotalSupply } from '../../hooks/useTotalSupply'
+import { useTotalSupply, useTotalSupplyHydra } from '../../hooks/useTotalSupply'
 import { useTokenBalance } from '../../state/connection/hooks'
-import { ExternalLink, ThemedText } from '../../theme'
+import { ThemedText } from '../../theme'
 import { currencyId } from '../../utils/currencyId'
 import { unwrappedToken } from '../../utils/unwrappedToken'
-import { ButtonEmpty, ButtonPrimary, ButtonSecondary } from '../Button'
+import { ButtonEmpty, ButtonPrimary } from '../Button'
 import { GreyCard, LightCard } from '../Card'
 import { AutoColumn } from '../Column'
 import CurrencyLogo from '../CurrencyLogo'
@@ -158,15 +159,14 @@ export function MinimalPositionCard({ pair, showUnwrapped = false, border }: Pos
 }
 
 export default function FullPositionCard({ pair, border, stakedBalance }: PositionCardProps) {
-  const { account } = useWeb3React()
-
+  const [account] = useHydraWalletAddress()
   const currency0 = unwrappedToken(pair.token0)
   const currency1 = unwrappedToken(pair.token1)
 
   const [showMore, setShowMore] = useState(false)
 
   const userDefaultPoolBalance = useTokenBalance(account ?? undefined, pair.liquidityToken)
-  const totalPoolTokens = useTotalSupply(pair.liquidityToken)
+  const totalPoolTokens = useTotalSupplyHydra(pair.liquidityToken)
 
   // if staked balance balance provided, add to standard liquidity amount
   const userPoolBalance = stakedBalance ? userDefaultPoolBalance?.add(stakedBalance) : userDefaultPoolBalance
@@ -297,16 +297,6 @@ export default function FullPositionCard({ pair, border, stakedBalance }: Positi
               </Text>
             </FixedHeightRow>
 
-            <ButtonSecondary padding="8px" $borderRadius="8px">
-              <ExternalLink
-                style={{ width: '100%', textAlign: 'center' }}
-                href={`https://v2.info.uniswap.org/account/${account}`}
-              >
-                <Trans>
-                  View accrued fees and analytics<span style={{ fontSize: '11px' }}>↗</span>
-                </Trans>
-              </ExternalLink>
-            </ButtonSecondary>
             {userDefaultPoolBalance && JSBI.greaterThan(userDefaultPoolBalance.quotient, BIG_INT_ZERO) && (
               <RowBetween marginTop="10px">
                 <ButtonPrimary

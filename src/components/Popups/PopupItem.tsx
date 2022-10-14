@@ -75,9 +75,9 @@ export default function PopupItem({
   let popupContent
   if ('txn' in content) {
     const {
-      txn: { hash },
+      txn: { hash, success, excepted },
     } = content
-    popupContent = <TransactionPopup hash={hash} />
+    popupContent = <TransactionPopup hash={hash} success={success && excepted === 'None'} />
   } else if ('failedSwitchNetwork' in content) {
     popupContent = <FailedNetworkSwitchPopup chainId={content.failedSwitchNetwork} />
   }

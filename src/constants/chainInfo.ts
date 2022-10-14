@@ -4,6 +4,7 @@ import polygonMaticLogo from 'assets/svg/polygon-matic-logo.svg'
 import ms from 'ms.macro'
 import { colorsDark } from 'theme/colors'
 
+import HydraLogo from '../assets/images/hydra-logo.png'
 import { SupportedChainId, SupportedL1ChainId, SupportedL2ChainId } from './chains'
 
 export enum NetworkType {
@@ -50,12 +51,12 @@ export type ChainInfoMap = { readonly [chainId: number]: L1ChainInfo | L2ChainIn
 const CHAIN_INFO: ChainInfoMap = {
   [SupportedChainId.MAINNET]: {
     networkType: NetworkType.L1,
-    docs: 'https://docs.uniswap.org/',
-    explorer: 'https://etherscan.io/',
-    infoLink: 'https://info.uniswap.org/#/',
-    label: 'Ethereum',
-    logoUrl: ethereumLogoUrl,
-    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    docs: 'https://docs.hydrachain.org/',
+    explorer: 'https://explorer.hydrachain.org/',
+    infoLink: 'https://info.hydradex.org/',
+    label: 'Hydra',
+    logoUrl: HydraLogo,
+    nativeCurrency: { name: 'Hydra', symbol: 'HYD', decimals: 8 },
     color: colorsDark.chain_1,
   },
   [SupportedChainId.RINKEBY]: {

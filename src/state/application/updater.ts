@@ -2,6 +2,7 @@ import { Web3Provider } from '@ethersproject/providers'
 import { useWeb3React } from '@web3-react/core'
 import useDebounce from 'hooks/useDebounce'
 import useIsWindowVisible from 'hooks/useIsWindowVisible'
+import { ChainId } from 'hydra/sdk'
 import { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch } from 'state/hooks'
 
@@ -11,7 +12,8 @@ import { updateBlockNumber } from './reducer'
 let interval: NodeJS.Timeout | undefined
 
 export default function Updater(): null {
-  const { chainId, provider } = useWeb3React()
+  const { provider } = useWeb3React()
+  const chainId = ChainId.MAINNET
   const dispatch = useAppDispatch()
   const windowVisible = useIsWindowVisible()
 

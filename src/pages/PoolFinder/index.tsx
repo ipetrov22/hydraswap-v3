@@ -1,8 +1,9 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Token } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
 import { PageName } from 'components/AmplitudeAnalytics/constants'
 import { Trace } from 'components/AmplitudeAnalytics/Trace'
+import { useHydraAccount } from 'hooks/useAddHydraAccExtension'
+import { ChainId } from 'hydra/sdk'
 import JSBI from 'jsbi'
 import { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'react-feather'
@@ -41,7 +42,9 @@ function useQuery() {
 export default function PoolFinder() {
   const query = useQuery()
 
-  const { account, chainId } = useWeb3React()
+  const chainId = ChainId.MAINNET
+  const [accountHydra] = useHydraAccount()
+  const account = accountHydra?.address
 
   const [showSearch, setShowSearch] = useState<boolean>(false)
   const [activeField, setActiveField] = useState<number>(Fields.TOKEN1)

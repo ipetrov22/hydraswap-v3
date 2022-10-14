@@ -1,10 +1,12 @@
 import { Trans } from '@lingui/macro'
-import { useWeb3React } from '@web3-react/core'
 import { PageName } from 'components/AmplitudeAnalytics/constants'
 import { Trace } from 'components/AmplitudeAnalytics/Trace'
-import { UNSUPPORTED_V2POOL_CHAIN_IDS } from 'constants/chains'
+import { SupportedChainId, UNSUPPORTED_V2POOL_CHAIN_IDS } from 'constants/chains'
+import { useHydraAccount } from 'hooks/useAddHydraAccExtension'
+import { ChainId } from 'hydra/sdk'
 import { Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
+import { usePairBalancesWithLoadingIndicator } from 'lib/hooks/useCurrencyBalance'
 import { useMemo } from 'react'
 import { ChevronsRight } from 'react-feather'
 import { Link } from 'react-router-dom'
@@ -21,7 +23,6 @@ import { Dots } from '../../components/swap/styleds'
 import { SwitchLocaleLink } from '../../components/SwitchLocaleLink'
 import { BIG_INT_ZERO } from '../../constants/misc'
 import { useV2Pairs } from '../../hooks/useV2Pairs'
-import { useTokenBalancesWithLoadingIndicator } from '../../state/connection/hooks'
 import { useStakingInfo } from '../../state/stake/hooks'
 import { toV2LiquidityToken, useTrackedTokenPairs } from '../../state/user/hooks'
 import { ExternalLink, HideSmall, ThemedText } from '../../theme'
@@ -89,8 +90,10 @@ const Layer2Prompt = styled(EmptyProposals)`
 
 export default function Pool() {
   const theme = useTheme()
-  const { account, chainId } = useWeb3React()
-  const unsupportedV2Network = chainId && UNSUPPORTED_V2POOL_CHAIN_IDS.includes(chainId)
+  const chainId = ChainId.MAINNET
+  const [accountHydra] = useHydraAccount()
+  const account = accountHydra?.address
+  const unsupportedV2Network = chainId && UNSUPPORTED_V2POOL_CHAIN_IDS.includes(SupportedChainId.MAINNET)
 
   // fetch the user's balances of all tracked V2 LP tokens
   let trackedTokenPairs = useTrackedTokenPairs()
@@ -103,7 +106,7 @@ export default function Pool() {
     () => tokenPairsWithLiquidityTokens.map((tpwlt) => tpwlt.liquidityToken),
     [tokenPairsWithLiquidityTokens]
   )
-  const [v2PairsBalances, fetchingV2PairBalances] = useTokenBalancesWithLoadingIndicator(
+  const [v2PairsBalances, fetchingV2PairBalances] = usePairBalancesWithLoadingIndicator(
     account ?? undefined,
     liquidityTokens
   )
@@ -196,7 +199,7 @@ export default function Pool() {
                     </ThemedText.DeprecatedMediumHeader>
                   </HideSmall>
                   <ButtonRow>
-                    <ResponsiveButtonSecondary as={Link} padding="6px 8px" to="/add/v2/ETH">
+                    <ResponsiveButtonSecondary as={Link} padding="6px 8px" to="/add/v2/HYDRA">
                       <Trans>Create a pair</Trans>
                     </ResponsiveButtonSecondary>
                     <ResponsiveButtonPrimary id="find-pool-button" as={Link} to="/pool/v2/find" padding="6px 8px">
@@ -204,7 +207,7 @@ export default function Pool() {
                         <Trans>Import Pool</Trans>
                       </Text>
                     </ResponsiveButtonPrimary>
-                    <ResponsiveButtonPrimary id="join-pool-button" as={Link} to="/add/v2/ETH" padding="6px 8px">
+                    <ResponsiveButtonPrimary id="join-pool-button" as={Link} to="/add/v2/HYDRA" padding="6px 8px">
                       <Text fontWeight={500} fontSize={16}>
                         <Trans>Add V2 Liquidity</Trans>
                       </Text>
@@ -228,16 +231,6 @@ export default function Pool() {
                   </EmptyProposals>
                 ) : allV2PairsWithLiquidity?.length > 0 || stakingPairs?.length > 0 ? (
                   <>
-                    <ButtonSecondary>
-                      <RowBetween>
-                        <Trans>
-                          <ExternalLink href={'https://v2.info.uniswap.org/account/' + account}>
-                            Account analytics and accrued fees
-                          </ExternalLink>
-                          <span> ↗ </span>
-                        </Trans>
-                      </RowBetween>
-                    </ButtonSecondary>
                     {v2PairsWithoutStakedAmount.map((v2Pair) => (
                       <FullPositionCard key={v2Pair.liquidityToken.address} pair={v2Pair} />
                     ))}
