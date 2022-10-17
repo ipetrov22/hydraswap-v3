@@ -1,8 +1,9 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { hydraweb3RPC, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
+import { BigintIsh } from '@uniswap/sdk-core'
+import { hydraweb3RPC, useHydraAccount, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { AbiHydraV2Pair } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
-import { getReserves } from 'hydra/contracts/v2PairFunctions'
+import { getReserves, token0, token1 } from 'hydra/contracts/v2PairFunctions'
 import { useEffect, useMemo, useState } from 'react'
 import { CallState, Result } from 'state/hydra/hrc20calls'
 
@@ -29,7 +30,10 @@ export function useGetReserves(pairAddresses: (string | undefined)[]): CallState
       for (let i = 0; i < pairAddresses.length; i++) {
         let result
         try {
-          result = await getReserves(getContract(hydraweb3RPC, pairAddresses[i], AbiHydraV2Pair), account)
+          result = await getReserves(
+            getContract(hydraweb3RPC, pairAddresses[i]?.toLowerCase(), AbiHydraV2Pair),
+            account
+          )
         } catch (e) {
           reserves[i] = {
             valid: false,
@@ -60,4 +64,76 @@ export function useGetReserves(pairAddresses: (string | undefined)[]): CallState
   }, [pairAddressesStringified, account])
 
   return reserves
+}
+
+export function useGetReservesRaw(pairAddress: string | undefined): {
+  reserve0Raw: BigintIsh | undefined
+  reserve1Raw: BigintIsh | undefined
+} {
+  const results = useGetReserves([pairAddress])
+  const rawReserves = useMemo(() => {
+    const { result } = results[0]
+    if (result) {
+      const { reserve0, reserve1 } = result
+      return { reserve0Raw: reserve0, reserve1Raw: reserve1 }
+    }
+    return { reserve0Raw: undefined, reserve1Raw: undefined }
+  }, [results])
+
+  return rawReserves
+}
+
+export function useToken0Address(pairAddress: string | undefined): string | undefined {
+  const [token0Address, setToken0Address] = useState<string | undefined>()
+  const [account] = useHydraAccount()
+
+  useEffect(() => {
+    if (!pairAddress || !account?.address) {
+      return
+    }
+
+    const pairContract = getContract(hydraweb3RPC, pairAddress?.toLowerCase(), AbiHydraV2Pair)
+    console.log(pairContract, pairAddress, account)
+    if (pairContract) {
+      token0(pairContract, account)
+        .then(({ executionResult }) => {
+          if (executionResult?.excepted === 'None') {
+            setToken0Address('0x' + executionResult?.formattedOutput[0])
+          }
+        })
+        .catch((e) => {
+          setToken0Address(undefined)
+        })
+    }
+  }, [pairAddress, account])
+
+  return token0Address
+}
+
+export function useToken1Address(pairAddress: string | undefined): string | undefined {
+  const [token1Address, setToken1Address] = useState<string | undefined>()
+  const [account] = useHydraAccount()
+
+  useEffect(() => {
+    if (!pairAddress || !account?.address) {
+      return
+    }
+
+    const pairContract = getContract(hydraweb3RPC, pairAddress?.toLowerCase(), AbiHydraV2Pair)
+    console.log(pairContract, pairAddress, account)
+    if (pairContract) {
+      token1(pairContract, account)
+        .then(({ executionResult }) => {
+          console.log(executionResult)
+          if (executionResult?.excepted === 'None') {
+            setToken1Address('0x' + executionResult?.formattedOutput[0])
+          }
+        })
+        .catch((e) => {
+          setToken1Address(undefined)
+        })
+    }
+  }, [pairAddress, account])
+
+  return token1Address
 }

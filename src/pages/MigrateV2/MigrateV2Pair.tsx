@@ -19,9 +19,9 @@ import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { PoolState, usePool } from 'hooks/usePools'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { useV2LiquidityTokenPermit } from 'hooks/useV2LiquidityTokenPermit'
+import { useGetReservesRaw, useToken0Address, useToken1Address } from 'hooks/useV2PairFunctions'
 import { ChainId } from 'hydra/sdk'
 import JSBI from 'jsbi'
-import { NEVER_RELOAD, useSingleCallResult } from 'lib/hooks/multicall'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertCircle, AlertTriangle, ArrowDown } from 'react-feather'
 import { Navigate, useParams } from 'react-router-dom'
@@ -43,7 +43,7 @@ import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useToken } from '../../hooks/Tokens'
 import { usePairContract, useV2MigratorContract } from '../../hooks/useContract'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
-import { useTotalSupply } from '../../hooks/useTotalSupply'
+import { useTotalSupplyHydra } from '../../hooks/useTotalSupply'
 import { useTokenBalance } from '../../state/connection/hooks'
 import { TransactionType } from '../../state/transactions/types'
 import { BackArrow, ExternalLink, ThemedText } from '../../theme'
@@ -672,9 +672,8 @@ export default function MigrateV2Pair() {
   const pair = usePairContract(validatedAddress ? validatedAddress : undefined)
 
   // get token addresses from pair contract
-  const token0AddressCallState = useSingleCallResult(pair, 'token0', undefined, NEVER_RELOAD)
-  const token0Address = token0AddressCallState?.result?.[0]
-  const token1Address = useSingleCallResult(pair, 'token1', undefined, NEVER_RELOAD)?.result?.[0]
+  const token0Address = useToken0Address(validatedAddress || undefined)
+  const token1Address = useToken1Address(validatedAddress || undefined)
 
   // get tokens
   const token0 = useToken(token0Address)
@@ -688,8 +687,9 @@ export default function MigrateV2Pair() {
 
   // get data required for V2 pair migration
   const pairBalance = useTokenBalance(account ?? undefined, liquidityToken)
-  const totalSupply = useTotalSupply(liquidityToken)
-  const [reserve0Raw, reserve1Raw] = useSingleCallResult(pair, 'getReserves')?.result ?? []
+  const totalSupply = useTotalSupplyHydra(liquidityToken)
+
+  const { reserve0Raw, reserve1Raw } = useGetReservesRaw(validatedAddress || undefined)
   const reserve0 = useMemo(
     () => (token0 && reserve0Raw ? CurrencyAmount.fromRawAmount(token0, reserve0Raw) : undefined),
     [token0, reserve0Raw]
@@ -700,15 +700,7 @@ export default function MigrateV2Pair() {
   )
 
   // redirect for invalid url params
-  if (
-    !validatedAddress ||
-    !pair ||
-    (pair &&
-      token0AddressCallState?.valid &&
-      !token0AddressCallState?.loading &&
-      !token0AddressCallState?.error &&
-      !token0Address)
-  ) {
+  if (!validatedAddress || !pair) {
     console.error('Invalid pair address')
     return <Navigate to="/migrate/v2" replace />
   }
