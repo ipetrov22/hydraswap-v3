@@ -1,3 +1,5 @@
+import { ChainId } from 'hydra/sdk'
+import { getChainId } from 'hydra/utils'
 import { useEffect, useState } from 'react'
 
 import useHydra from './useHydra'
@@ -62,4 +64,15 @@ export function useHydraWalletAddress() {
   }, [account])
 
   return [addr]
+}
+
+export function useHydraChainId(): ChainId[] {
+  const [account] = useHydraAccount()
+  const [chainId, setChainId] = useState(getChainId(account?.network))
+
+  useEffect(() => {
+    setChainId(getChainId(account?.network))
+  }, [account?.network])
+
+  return [chainId ?? ChainId.MAINNET]
 }
