@@ -3,7 +3,6 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { CurrencyAmount, Fraction, Percent, Price, Token } from '@uniswap/sdk-core'
 import { FeeAmount, Pool, Position, priceToClosestTick, TickMath } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
 import { sendEvent } from 'components/analytics'
 import Badge, { BadgeVariant } from 'components/Badge'
 import { ButtonConfirmed } from 'components/Button'
@@ -14,13 +13,15 @@ import RangeSelector from 'components/RangeSelector'
 import RateToggle from 'components/RateToggle'
 import SettingsTab from 'components/Settings'
 import { Dots } from 'components/swap/styleds'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { PoolState, usePool } from 'hooks/usePools'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { useV2LiquidityTokenPermit } from 'hooks/useV2LiquidityTokenPermit'
+import { useGetReservesRaw, useToken0Address, useToken1Address } from 'hooks/useV2PairFunctions'
+import { ChainId } from 'hydra/sdk'
 import JSBI from 'jsbi'
-import { NEVER_RELOAD, useSingleCallResult } from 'lib/hooks/multicall'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertCircle, AlertTriangle, ArrowDown } from 'react-feather'
 import { Navigate, useParams } from 'react-router-dom'
@@ -38,12 +39,11 @@ import { AutoColumn } from '../../components/Column'
 import CurrencyLogo from '../../components/CurrencyLogo'
 import FormattedCurrencyAmount from '../../components/FormattedCurrencyAmount'
 import { AutoRow, RowBetween, RowFixed } from '../../components/Row'
-import { V2_FACTORY_ADDRESSES } from '../../constants/addresses'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useToken } from '../../hooks/Tokens'
 import { usePairContract, useV2MigratorContract } from '../../hooks/useContract'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
-import { useTotalSupply } from '../../hooks/useTotalSupply'
+import { useTotalSupplyHydra } from '../../hooks/useTotalSupply'
 import { useTokenBalance } from '../../state/connection/hooks'
 import { TransactionType } from '../../state/transactions/types'
 import { BackArrow, ExternalLink, ThemedText } from '../../theme'
@@ -124,12 +124,9 @@ function V2PairMigration({
   token0: Token
   token1: Token
 }) {
-  const { chainId, account } = useWeb3React()
+  const [account] = useHydraWalletAddress()
+  const chainId = ChainId.MAINNET
   const theme = useTheme()
-  const v2FactoryAddress = chainId ? V2_FACTORY_ADDRESSES[chainId] : undefined
-
-  const pairFactory = useSingleCallResult(pair, 'factory')
-  const isNotUniswap = pairFactory.result?.[0] && pairFactory.result[0] !== v2FactoryAddress
 
   const deadline = useTransactionDeadline() // custom from users settings
   const blockTimestamp = useCurrentBlockTimestamp()
@@ -243,7 +240,7 @@ function V2PairMigration({
   const isArgentWallet = useIsArgentWallet()
 
   const approve = useCallback(async () => {
-    if (isNotUniswap || isArgentWallet) {
+    if (isArgentWallet) {
       // sushi has to be manually approved
       await approveManually()
     } else if (gatherPermitSignature) {
@@ -258,7 +255,7 @@ function V2PairMigration({
     } else {
       await approveManually()
     }
-  }, [isNotUniswap, isArgentWallet, gatherPermitSignature, approveManually])
+  }, [isArgentWallet, gatherPermitSignature, approveManually])
 
   const addTransaction = useTransactionAdder()
   const isMigrationPending = useIsTransactionPending(pendingMigrationHash ?? undefined)
@@ -338,7 +335,7 @@ function V2PairMigration({
           .then((response: TransactionResponse) => {
             sendEvent({
               category: 'Migrate',
-              action: `${isNotUniswap ? 'SushiSwap' : 'V2'}->V3`,
+              action: `V2->V3`,
               label: `${currency0.symbol}/${currency1.symbol}`,
             })
 
@@ -346,7 +343,7 @@ function V2PairMigration({
               type: TransactionType.MIGRATE_LIQUIDITY_V3,
               baseCurrencyId: currencyId(currency0),
               quoteCurrencyId: currencyId(currency1),
-              isFork: isNotUniswap,
+              isFork: false,
             })
             setPendingMigrationHash(response.hash)
           })
@@ -356,7 +353,6 @@ function V2PairMigration({
       })
   }, [
     chainId,
-    isNotUniswap,
     migrator,
     noLiquidity,
     blockTimestamp,
@@ -384,13 +380,12 @@ function V2PairMigration({
     <AutoColumn gap="20px">
       <ThemedText.DeprecatedBody my={9} style={{ fontWeight: 400 }}>
         <Trans>
-          This tool will safely migrate your {isNotUniswap ? 'SushiSwap' : 'V2'} liquidity to V3. The process is
-          completely trustless thanks to the{' '}
+          This tool will safely migrate your V2 liquidity to V3. The process is completely trustless thanks to the{' '}
         </Trans>
         {chainId && migrator && (
           <ExternalLink href={getExplorerLink(chainId, migrator.address, ExplorerDataType.ADDRESS)}>
             <ThemedText.DeprecatedBlue display="inline">
-              <Trans>Uniswap migration contract↗</Trans>
+              <Trans>Hydraswap migration contract↗</Trans>
             </ThemedText.DeprecatedBlue>
           </ExternalLink>
         )}
@@ -408,7 +403,7 @@ function V2PairMigration({
                 </Trans>
               </ThemedText.DeprecatedMediumHeader>
             </RowFixed>
-            <Badge variant={BadgeVariant.WARNING}>{isNotUniswap ? 'Sushi' : 'V2'}</Badge>
+            <Badge variant={BadgeVariant.WARNING}>V2</Badge>
           </RowBetween>
           <LiquidityInfo token0Amount={token0Value} token1Amount={token1Value} />
         </AutoColumn>
@@ -443,7 +438,7 @@ function V2PairMigration({
               >
                 <Trans>
                   You are the first liquidity provider for this Uniswap V3 pool. Your liquidity will migrate at the
-                  current {isNotUniswap ? 'SushiSwap' : 'V2'} price.
+                  current V2 price.
                 </Trans>
               </ThemedText.DeprecatedBody>
 
@@ -460,9 +455,7 @@ function V2PairMigration({
                 <AutoColumn gap="8px" style={{ marginTop: '12px' }}>
                   <RowBetween>
                     <ThemedText.DeprecatedBody fontWeight={500} fontSize={14}>
-                      <Trans>
-                        {isNotUniswap ? 'SushiSwap' : 'V2'} {invertPrice ? currency1.symbol : currency0.symbol} Price:
-                      </Trans>{' '}
+                      <Trans>V2 {invertPrice ? currency1.symbol : currency0.symbol} Price:</Trans>{' '}
                       {invertPrice
                         ? `${v2SpotPrice?.invert()?.toSignificant(6)} ${currency0.symbol}`
                         : `${v2SpotPrice?.toSignificant(6)} ${currency1.symbol}`}
@@ -478,9 +471,7 @@ function V2PairMigration({
               <AutoColumn gap="8px">
                 <RowBetween>
                   <ThemedText.DeprecatedBody fontSize={14}>
-                    <Trans>
-                      {isNotUniswap ? 'SushiSwap' : 'V2'} {invertPrice ? currency1.symbol : currency0.symbol} Price:
-                    </Trans>
+                    <Trans>V2 {invertPrice ? currency1.symbol : currency0.symbol} Price:</Trans>
                   </ThemedText.DeprecatedBody>
                   <ThemedText.DeprecatedBlack fontSize={14}>
                     {invertPrice
@@ -673,16 +664,16 @@ export default function MigrateV2Pair() {
     }
   }, [dispatch])
 
-  const { chainId, account } = useWeb3React()
+  const [account] = useHydraWalletAddress()
+  const chainId = ChainId.MAINNET
 
   // get pair contract
   const validatedAddress = isAddress(address)
   const pair = usePairContract(validatedAddress ? validatedAddress : undefined)
 
   // get token addresses from pair contract
-  const token0AddressCallState = useSingleCallResult(pair, 'token0', undefined, NEVER_RELOAD)
-  const token0Address = token0AddressCallState?.result?.[0]
-  const token1Address = useSingleCallResult(pair, 'token1', undefined, NEVER_RELOAD)?.result?.[0]
+  const token0Address = useToken0Address(validatedAddress || undefined)
+  const token1Address = useToken1Address(validatedAddress || undefined)
 
   // get tokens
   const token0 = useToken(token0Address)
@@ -696,8 +687,9 @@ export default function MigrateV2Pair() {
 
   // get data required for V2 pair migration
   const pairBalance = useTokenBalance(account ?? undefined, liquidityToken)
-  const totalSupply = useTotalSupply(liquidityToken)
-  const [reserve0Raw, reserve1Raw] = useSingleCallResult(pair, 'getReserves')?.result ?? []
+  const totalSupply = useTotalSupplyHydra(liquidityToken)
+
+  const { reserve0Raw, reserve1Raw } = useGetReservesRaw(validatedAddress || undefined)
   const reserve0 = useMemo(
     () => (token0 && reserve0Raw ? CurrencyAmount.fromRawAmount(token0, reserve0Raw) : undefined),
     [token0, reserve0Raw]
@@ -708,15 +700,7 @@ export default function MigrateV2Pair() {
   )
 
   // redirect for invalid url params
-  if (
-    !validatedAddress ||
-    !pair ||
-    (pair &&
-      token0AddressCallState?.valid &&
-      !token0AddressCallState?.loading &&
-      !token0AddressCallState?.error &&
-      !token0Address)
-  ) {
+  if (!validatedAddress || !pair) {
     console.error('Invalid pair address')
     return <Navigate to="/migrate/v2" replace />
   }

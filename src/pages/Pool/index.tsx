@@ -191,7 +191,7 @@ export default function Pool() {
 
   useAddHydraAccExtension(walletExtension, hydraweb3Extension)
   const account = accountHydra?.address
-  const { positions, loading: positionsLoading } = useV3Positions(account)
+  const { positions, loading: positionsLoading } = useV3Positions(undefined) // account must be passed to hook
 
   const toggleConnectModal = useToggleConnectModal()
   const connectHydra = useConnectHydra()
