@@ -21,6 +21,12 @@ export function useV2Pairs(currencies: [Currency | undefined, Currency | undefin
   const pairAddresses = useMemo(
     () =>
       tokens.map(([tokenA, tokenB]) => {
+        console.log(tokenA, tokenB)
+        console.log(
+          tokenA && tokenB && V2_FACTORY_ADDRESSES[tokenA.chainId]
+            ? computePairAddress({ factoryAddress: V2_FACTORY_ADDRESSES[tokenA.chainId], tokenA, tokenB })
+            : undefined
+        )
         return tokenA &&
           tokenB &&
           tokenA.chainId === tokenB.chainId &&
