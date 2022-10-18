@@ -1,6 +1,5 @@
 import { EXPLORER_URL } from 'constants/index'
-import { useHydraLibrary } from 'hooks/useAddHydraAccExtension'
-import { ChainId } from 'hydra/sdk'
+import { useHydraChainId, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, AppState } from 'state'
@@ -31,7 +30,7 @@ export function shouldCheck(
 
 export default function Updater(): null {
   const [library] = useHydraLibrary()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
 
   const lastBlockNumber = useBlockNumber()
 

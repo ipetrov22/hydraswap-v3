@@ -1,7 +1,6 @@
 import { TransactionResponse } from '@ethersproject/providers'
 import { Token } from '@uniswap/sdk-core'
-import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
-import { ChainId } from 'hydra/sdk'
+import { useHydraChainId, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
@@ -10,7 +9,8 @@ import { TransactionDetails, TransactionInfo, TransactionType } from './types'
 
 // helper that can take a ethers library transaction response and add it to the list of transactions
 export function useTransactionAdder(): (response: TransactionResponse, info: TransactionInfo) => void {
-  const { chainId, account } = { chainId: ChainId.MAINNET, account: accountHydra?.address }
+  const [account] = useHydraWalletAddress()
+  const [chainId] = useHydraChainId()
   const dispatch = useAppDispatch()
 
   return useCallback(
@@ -30,7 +30,7 @@ export function useTransactionAdder(): (response: TransactionResponse, info: Tra
 
 // returns all the transactions for the current chain
 export function useAllTransactions(): { [txHash: string]: TransactionDetails } {
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
 
   const state = useAppSelector((state) => state.transactions)
 

@@ -52,7 +52,7 @@ const CHAIN_INFO: ChainInfoMap = {
   [SupportedChainId.MAINNET]: {
     networkType: NetworkType.L1,
     docs: 'https://docs.hydrachain.org/',
-    explorer: 'https://explorer.hydrachain.org/',
+    explorer: 'https://testexplorer.hydrachain.org/',
     infoLink: 'https://info.hydradex.org/',
     label: 'Hydra',
     logoUrl: HydraLogo,

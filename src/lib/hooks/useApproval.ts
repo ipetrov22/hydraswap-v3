@@ -1,12 +1,11 @@
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
 import { Currency, CurrencyAmount, Token } from '@uniswap/sdk-core'
-import { useHydraAccount, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
+import { useHydraAccount, useHydraChainId, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
 import { useTokenAllowance } from 'hooks/useTokenAllowance'
 import { AbiToken } from 'hydra/contracts/abi'
 import { approve as approveToken } from 'hydra/contracts/tokenFunctions'
 import { getContract } from 'hydra/contracts/utils'
-import { ChainId } from 'hydra/sdk'
 import { useCallback, useMemo } from 'react'
 
 export enum ApprovalState {
@@ -50,7 +49,7 @@ export function useApproval(
   ApprovalState,
   () => Promise<{ response: TransactionResponse; tokenAddress: string; spenderAddress: string } | undefined>
 ] {
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
   const [account] = useHydraAccount()
   const [library] = useHydraLibrary()
   const token = amountToApprove?.currency?.isToken ? amountToApprove.currency : undefined

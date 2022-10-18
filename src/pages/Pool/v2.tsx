@@ -2,8 +2,7 @@ import { Trans } from '@lingui/macro'
 import { PageName } from 'components/AmplitudeAnalytics/constants'
 import { Trace } from 'components/AmplitudeAnalytics/Trace'
 import { SupportedChainId, UNSUPPORTED_V2POOL_CHAIN_IDS } from 'constants/chains'
-import { useHydraAccount } from 'hooks/useAddHydraAccExtension'
-import { ChainId } from 'hydra/sdk'
+import { useHydraAccount, useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import { Pair } from 'hydra-v2-sdk'
 import JSBI from 'jsbi'
 import { usePairBalancesWithLoadingIndicator } from 'lib/hooks/useCurrencyBalance'
@@ -90,7 +89,7 @@ const Layer2Prompt = styled(EmptyProposals)`
 
 export default function Pool() {
   const theme = useTheme()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
   const [accountHydra] = useHydraAccount()
   const account = accountHydra?.address
   const unsupportedV2Network = chainId && UNSUPPORTED_V2POOL_CHAIN_IDS.includes(SupportedChainId.MAINNET)

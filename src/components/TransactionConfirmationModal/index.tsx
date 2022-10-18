@@ -4,7 +4,7 @@ import Badge from 'components/Badge'
 import { getChainInfo } from 'constants/chainInfo'
 import { SupportedL2ChainId } from 'constants/chains'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
-import { ChainId } from 'hydra/sdk'
+import { useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import { ReactNode } from 'react'
 import { AlertCircle, AlertTriangle, ArrowUpCircle } from 'react-feather'
 import { Text } from 'rebass'
@@ -390,7 +390,7 @@ export default function TransactionConfirmationModal({
   pendingText,
   content,
 }: ConfirmationModalProps) {
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
 

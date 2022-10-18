@@ -1,9 +1,9 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { account, hydraweb3RPC, useHydraAccount, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
-import { addressGetBalancesResolver } from 'hydra/contracts/contractAddresses'
+import { V2_FACTORY_ADDRESSES } from 'constants/addresses'
+import { account, hydraweb3RPC, useHydraAccount, useHydraChainId, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
+import { getAddressBalanceResolver } from 'hydra/contracts/contractAddresses'
 import { balanceOf } from 'hydra/contracts/tokenFunctions'
 import { allPairs, allPairsLength } from 'hydra/contracts/v2FactoryFunctions'
-import { FACTORY_ADDRESS } from 'hydra/sdk'
 import { useEffect, useMemo, useState } from 'react'
 
 import { AbiGetBalanceResolver, AbiHydraV2Factory, AbiToken } from '../../hydra/contracts/abi'
@@ -40,6 +40,7 @@ const getResult = (e: BigNumber) => {
 }
 
 export function useBalancesOf(tokenAddresses: string[]): CallState[] {
+  const [chainId] = useHydraChainId()
   const tokenAddressesStringifed = JSON.stringify(tokenAddresses)
   const [balances, setBalances] = useState<CallState[]>([])
 
@@ -52,7 +53,7 @@ export function useBalancesOf(tokenAddresses: string[]): CallState[] {
     if (tokenAddresses.length > 0) {
       ;(async () => {
         try {
-          const resolver = getContract(hydraweb3RPC, addressGetBalancesResolver, AbiGetBalanceResolver)
+          const resolver = getContract(hydraweb3RPC, getAddressBalanceResolver(chainId), AbiGetBalanceResolver)
           const tx = await resolver.call('getBalances', {
             methodArgs: [account.address, tokenAddresses],
             senderAddress: account.address,
@@ -76,12 +77,13 @@ export function useBalancesOf(tokenAddresses: string[]): CallState[] {
     return () => {
       setBalances([])
     }
-  }, [tokenAddressesStringifed])
+  }, [tokenAddressesStringifed, chainId])
 
   return balances
 }
 
 export function usePairBalancesOf(tokenAddresses: string[]): CallState[] {
+  const [chainId] = useHydraChainId()
   const [account] = useHydraAccount()
   const [hydraweb3RPC] = useHydraLibrary()
   const [balances, setBalances] = useState<CallState[]>([])
@@ -96,7 +98,7 @@ export function usePairBalancesOf(tokenAddresses: string[]): CallState[] {
     if (tokenAddresses.length > 0) {
       ;(async () => {
         try {
-          const factory = getContract(hydraweb3RPC, FACTORY_ADDRESS, AbiHydraV2Factory)
+          const factory = getContract(hydraweb3RPC, V2_FACTORY_ADDRESSES[chainId], AbiHydraV2Factory)
           const txPairsLength = await allPairsLength(factory, account)
           const pairsLenght = Number((txPairsLength.executionResult?.formattedOutput[0]).toString())
           const pairs: string[] = []
@@ -147,7 +149,7 @@ export function usePairBalancesOf(tokenAddresses: string[]): CallState[] {
     return () => {
       setBalances([])
     }
-  }, [tokenAddressesStringified, account, hydraweb3RPC])
+  }, [tokenAddressesStringified, account, hydraweb3RPC, chainId])
 
   return balances
 }

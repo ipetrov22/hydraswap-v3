@@ -125,6 +125,7 @@ export const DAI_OPTIMISM = new Token(
 )
 export const USDC: { [chainId in SupportedChainId]: Token } = {
   [SupportedChainId.MAINNET]: USDC_MAINNET,
+  [SupportedChainId.TESTNET]: USDC_MAINNET,
   [SupportedChainId.ARBITRUM_ONE]: USDC_ARBITRUM,
   [SupportedChainId.OPTIMISM]: USDC_OPTIMISM,
   [SupportedChainId.ARBITRUM_RINKEBY]: USDC_ARBITRUM_RINKEBY,
@@ -348,6 +349,13 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
   ...(WETH9 as Record<SupportedChainId, Token>),
   [SupportedChainId.MAINNET]: new Token(
     SupportedChainId.MAINNET,
+    '0x6d9115a21863ce31b44cd231e4c4ccc87566222f',
+    8,
+    'WHYDRA',
+    'Wrapped Hydra'
+  ),
+  [SupportedChainId.TESTNET]: new Token(
+    SupportedChainId.TESTNET,
     '0xcc74ab8d0e2366956b3cb6d8a8c7f14872c9a987',
     8,
     'WHYDRA',

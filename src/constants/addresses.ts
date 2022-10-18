@@ -1,4 +1,11 @@
 import { FACTORY_ADDRESS as V3_FACTORY_ADDRESS } from '@uniswap/v3-sdk'
+import {
+  MAINNET_V2_FACTORY,
+  MAINNET_V2_ROUTER,
+  TESTNET_V2_FACTORY,
+  TESTNET_V2_ROUTER,
+} from 'hydra/contracts/contractAddresses'
+import { ChainId } from 'hydra/sdk'
 
 import { constructSameAddressMap } from '../utils/constructSameAddressMap'
 import { SupportedChainId } from './chains'
@@ -7,12 +14,16 @@ type AddressMap = { [chainId: number]: string }
 
 export const UNI_ADDRESS: AddressMap = constructSameAddressMap('0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984')
 
-// const HYDRA_V2_FACTORY = '0x5a2a927bea6c5f4a48d4e0116049c1e36d52a528' // MAINNET
-const HYDRA_V2_FACTORY = '0xd8350cf44cb326c81fdf91ded2bf92e6b785d64c' // TESTNET
-
-export const V2_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap(HYDRA_V2_FACTORY)
-// export const V2_ROUTER_ADDRESS = '0xdf60e3babacfce81c9efcb268c14a7d33efe567b' // MAINNET
-export const V2_ROUTER_ADDRESS = '0xd048412e0500b80c1f8c4dcc3e0dc189ed636251' // TESTNET
+// ** HYDRA CONTRACTS **
+export const V2_FACTORY_ADDRESSES: AddressMap = {
+  [ChainId.MAINNET]: MAINNET_V2_FACTORY,
+  [ChainId.TESTNET]: TESTNET_V2_FACTORY,
+}
+export const V2_ROUTER_ADDRESSES: AddressMap = {
+  [ChainId.MAINNET]: MAINNET_V2_ROUTER,
+  [ChainId.TESTNET]: TESTNET_V2_ROUTER,
+}
+// ** HYDRA CONTRACTS **
 
 // celo v3 addresses
 const CELO_V3_CORE_FACTORY_ADDRESSES = '0xAfE208a311B21f13EF87E33A90049fC17A7acDEc'
