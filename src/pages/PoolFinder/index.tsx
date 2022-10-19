@@ -2,8 +2,7 @@ import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { PageName } from 'components/AmplitudeAnalytics/constants'
 import { Trace } from 'components/AmplitudeAnalytics/Trace'
-import { useHydraAccount } from 'hooks/useAddHydraAccExtension'
-import { ChainId } from 'hydra/sdk'
+import { useHydraAccount, useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import JSBI from 'jsbi'
 import { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'react-feather'
@@ -42,7 +41,7 @@ function useQuery() {
 export default function PoolFinder() {
   const query = useQuery()
 
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
   const [accountHydra] = useHydraAccount()
   const account = accountHydra?.address
 

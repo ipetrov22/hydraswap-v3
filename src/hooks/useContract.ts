@@ -25,7 +25,7 @@ import {
   NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
   QUOTER_ADDRESSES,
   TICK_LENS_ADDRESSES,
-  V2_ROUTER_ADDRESS,
+  V2_ROUTER_ADDRESSES,
   V3_MIGRATOR_ADDRESSES,
 } from 'constants/addresses'
 import { WRAPPED_NATIVE_CURRENCY } from 'constants/tokens'
@@ -117,7 +117,7 @@ export function usePairContract(pairAddress?: string, withSignerIfPossible?: boo
 }
 
 export function useV2RouterContract(): Contract | null {
-  return useContract(V2_ROUTER_ADDRESS, IUniswapV2Router02ABI, true)
+  return useContract(V2_ROUTER_ADDRESSES, IUniswapV2Router02ABI, true)
 }
 
 export function useInterfaceMulticall() {

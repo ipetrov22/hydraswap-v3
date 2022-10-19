@@ -3,17 +3,17 @@ import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { sendEvent } from 'components/analytics'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
-import { V2_ROUTER_ADDRESS } from 'constants/addresses'
+import { V2_ROUTER_ADDRESSES } from 'constants/addresses'
 import useAddHydraAccExtension, {
   account as accountHydra,
   isEmptyObj,
+  useHydraChainId,
   useHydraLibrary,
 } from 'hooks/useAddHydraAccExtension'
 import useHydra from 'hooks/useHydra'
 import { AbiHydraV2Router01 } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
 import { addLiquidity, addLiquidityHYDRA } from 'hydra/contracts/v2RouterFunctions'
-import { ChainId } from 'hydra/sdk'
 import { useCallback, useMemo, useState } from 'react'
 import { Plus } from 'react-feather'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -56,7 +56,7 @@ const DEFAULT_ADD_V2_SLIPPAGE_TOLERANCE = new Percent(50, 10_000)
 export default function AddLiquidity() {
   const { currencyIdA, currencyIdB } = useParams<{ currencyIdA?: string; currencyIdB?: string }>()
   const navigate = useNavigate()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
   const { walletExtension, hydraweb3Extension } = useHydra()
 
   useAddHydraAccExtension(walletExtension, hydraweb3Extension)
@@ -137,8 +137,14 @@ export default function AddLiquidity() {
   )
 
   // check whether the user has approved the router on the tokens
-  const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], V2_ROUTER_ADDRESS)
-  const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], V2_ROUTER_ADDRESS)
+  const [approvalA, approveACallback] = useApproveCallback(
+    parsedAmounts[Field.CURRENCY_A],
+    V2_ROUTER_ADDRESSES[chainId]
+  )
+  const [approvalB, approveBCallback] = useApproveCallback(
+    parsedAmounts[Field.CURRENCY_B],
+    V2_ROUTER_ADDRESSES[chainId]
+  )
 
   const addTransaction = useTransactionAdder()
 
@@ -146,7 +152,7 @@ export default function AddLiquidity() {
     try {
       if (!chainId || isEmptyObj(library) || !account) return
 
-      const router = getContract(library, V2_ROUTER_ADDRESS, AbiHydraV2Router01)
+      const router = getContract(library, V2_ROUTER_ADDRESSES[chainId], AbiHydraV2Router01)
 
       const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
       if (!parsedAmountA || !parsedAmountB || !currencyA || !currencyB) {

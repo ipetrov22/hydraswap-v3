@@ -93,7 +93,6 @@ export function useToken0Address(pairAddress: string | undefined): string | unde
     }
 
     const pairContract = getContract(hydraweb3RPC, pairAddress?.toLowerCase(), AbiHydraV2Pair)
-    console.log(pairContract, pairAddress, account)
     if (pairContract) {
       token0(pairContract, account)
         .then(({ executionResult }) => {
@@ -120,11 +119,9 @@ export function useToken1Address(pairAddress: string | undefined): string | unde
     }
 
     const pairContract = getContract(hydraweb3RPC, pairAddress?.toLowerCase(), AbiHydraV2Pair)
-    console.log(pairContract, pairAddress, account)
     if (pairContract) {
       token1(pairContract, account)
         .then(({ executionResult }) => {
-          console.log(executionResult)
           if (executionResult?.excepted === 'None') {
             setToken1Address('0x' + executionResult?.formattedOutput[0])
           }

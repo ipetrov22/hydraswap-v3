@@ -11135,21 +11135,21 @@ human-signals@^1.1.1:
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-1.1.1.tgz#c5b1cd14f50aeae09ab6c59fe63ba3395fe4dfa3"
   integrity sha512-SEQu7vl8KjNL2eoGBLF3+wAjpsNfA9XMlXAYj/3EdaNfAlxKthD1xjEQfGOUhllCGGJVNY34bRr6lPINhNjyZw==
 
-hydra-router-sdk@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/hydra-router-sdk/-/hydra-router-sdk-1.0.0.tgz#d9eda792361702b87140e9ae30ba39f320e3e8c8"
-  integrity sha512-QfZoKYAf+HZH/B7CqN3cyS0shIg0PAU62nEiUDlrthcvH3rFBWvNWuJliAeluKbyMYCruuH+F9hrzTj3KH8bXA==
+hydra-router-sdk@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/hydra-router-sdk/-/hydra-router-sdk-1.1.1.tgz#098ad107bed4b1c79f6617dd26a36d4413e34397"
+  integrity sha512-H8u51WDL9RPmWusj7PXrfdO8hCNrhZnnXlXlaYK/H+wWkXbBM52EGtLGknh5KMXvYiMwFrgkorqXMji2Ildp+A==
   dependencies:
     "@ethersproject/abi" "^5.5.0"
     "@uniswap/sdk-core" "^3.0.1"
     "@uniswap/swap-router-contracts" "1.1.0"
     "@uniswap/v3-sdk" "^3.8.3"
-    hydra-v2-sdk "^1.0.0"
+    hydra-v2-sdk "^1.1.1"
 
-hydra-v2-sdk@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/hydra-v2-sdk/-/hydra-v2-sdk-1.0.0.tgz#2ff63ce8e3a4dba506faf1224cee6965f2b91b71"
-  integrity sha512-ZNUmYaiplcSVtbuyw0iiMznn5nQkslnaYEjQFA9pdnJIf7+9/dRRMs/MWMrlAIlbGgwWaXA2MzcPlwQJ06lMtg==
+hydra-v2-sdk@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/hydra-v2-sdk/-/hydra-v2-sdk-1.1.1.tgz#685cef4109b7efb135e78e172242c4353a782a37"
+  integrity sha512-s0g+Zd6I/OPp02dMgSCnMsap9et3MABCTCElukOnkdwqKxD/QrozZHc8CMTQrKTXBG6ztvFGrXVEddmQnZzvUA==
   dependencies:
     "@ethersproject/address" "^5.0.0"
     "@ethersproject/solidity" "^5.0.0"

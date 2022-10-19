@@ -1,6 +1,6 @@
 import { useWeb3React } from '@web3-react/core'
+import { useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import useIsWindowVisible from 'hooks/useIsWindowVisible'
-import { ChainId } from 'hydra/sdk'
 import { createContext, ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { AppState } from 'state'
@@ -14,7 +14,7 @@ const BlockNumberContext = createContext<
 >(MISSING_PROVIDER)
 
 export default function useBlockNumber(): number | undefined {
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
 
   return useSelector((state: AppState) => state.application.blockNumber[chainId ?? -1])
 }

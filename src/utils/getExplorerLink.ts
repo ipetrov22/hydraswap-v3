@@ -4,6 +4,7 @@ import { EXPLORER_URL } from '../constants'
 
 const BLOCK_EXPLORER_PREFIXES: { [chainId: number]: string } = {
   [ChainId.MAINNET]: EXPLORER_URL,
+  [ChainId.TESTNET]: 'https://testexplorer.hydrachain.org',
 }
 
 export enum ExplorerDataType {

@@ -1,5 +1,5 @@
 import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
-import { ChainId } from 'hydra/sdk'
+import { useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import { useCallback, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
@@ -8,7 +8,7 @@ import { AppState } from '../index'
 import { addPopup, ApplicationModal, PopupContent, removePopup, setOpenModal } from './reducer'
 
 export function useBlockNumber(): number | undefined {
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
 
   return useSelector((state: AppState) => state.application.blockNumber[chainId ?? -1])
 }

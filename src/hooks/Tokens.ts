@@ -8,10 +8,11 @@ import { useAllLists, useCombinedActiveList, useCombinedInactiveList, useInactiv
 import { WrappedTokenInfo } from '../state/lists/wrappedTokenInfo'
 import { useUserAddedTokens } from '../state/user/hooks'
 import { TokenAddressMap, useUnsupportedTokenList } from './../state/lists/hooks'
+import { useHydraChainId } from './useAddHydraAccExtension'
 
 // reduce token map into standard address <-> Token mapping, optionally include user added tokens
 function useTokensFromMap(tokenMap: TokenAddressMap, includeUserAdded: boolean): { [address: string]: Token } {
-  const { chainId } = useWeb3React()
+  const [chainId] = useHydraChainId()
   const userAddedTokens = useUserAddedTokens()
 
   return useMemo(() => {

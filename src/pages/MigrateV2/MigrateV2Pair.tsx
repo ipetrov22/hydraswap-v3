@@ -13,14 +13,13 @@ import RangeSelector from 'components/RangeSelector'
 import RateToggle from 'components/RateToggle'
 import SettingsTab from 'components/Settings'
 import { Dots } from 'components/swap/styleds'
-import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
+import { useHydraChainId, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { PoolState, usePool } from 'hooks/usePools'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { useV2LiquidityTokenPermit } from 'hooks/useV2LiquidityTokenPermit'
 import { useGetReservesRaw, useToken0Address, useToken1Address } from 'hooks/useV2PairFunctions'
-import { ChainId } from 'hydra/sdk'
 import JSBI from 'jsbi'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertCircle, AlertTriangle, ArrowDown } from 'react-feather'
@@ -125,7 +124,7 @@ function V2PairMigration({
   token1: Token
 }) {
   const [account] = useHydraWalletAddress()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
   const theme = useTheme()
 
   const deadline = useTransactionDeadline() // custom from users settings
@@ -665,7 +664,7 @@ export default function MigrateV2Pair() {
   }, [dispatch])
 
   const [account] = useHydraWalletAddress()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
 
   // get pair contract
   const validatedAddress = isAddress(address)

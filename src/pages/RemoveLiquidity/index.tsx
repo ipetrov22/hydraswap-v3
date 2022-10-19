@@ -2,13 +2,12 @@ import { Trans } from '@lingui/macro'
 import { Currency, Percent } from '@uniswap/sdk-core'
 import { ElementName, Event, EventName } from 'components/AmplitudeAnalytics/constants'
 import { TraceEvent } from 'components/AmplitudeAnalytics/TraceEvent'
-import { V2_ROUTER_ADDRESS } from 'constants/addresses'
-import useAddHydraAccExtension, { hydraweb3RPC, useHydraAccount } from 'hooks/useAddHydraAccExtension'
+import { V2_ROUTER_ADDRESSES } from 'constants/addresses'
+import useAddHydraAccExtension, { hydraweb3RPC, useHydraAccount, useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import useHydra from 'hooks/useHydra'
 import { AbiHydraV2Router01 } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
 import { removeLiquidity, removeLiquidityHYDRA } from 'hydra/contracts/v2RouterFunctions'
-import { ChainId } from 'hydra/sdk'
 import { useCallback, useMemo, useState } from 'react'
 import { ArrowDown, Plus } from 'react-feather'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -52,7 +51,7 @@ export default function RemoveLiquidity() {
   const { walletExtension, hydraweb3Extension } = useHydra()
   useAddHydraAccExtension(walletExtension, hydraweb3Extension)
   const [account] = useHydraAccount()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
 
   const { currencyIdA, currencyIdB } = useParams<{ currencyIdA: string; currencyIdB: string }>()
   const [currencyA, currencyB] = [useCurrency(currencyIdA) ?? undefined, useCurrency(currencyIdB) ?? undefined]
@@ -100,7 +99,7 @@ export default function RemoveLiquidity() {
   const atMaxAmount = parsedAmounts[Field.LIQUIDITY_PERCENT]?.equalTo(new Percent('1'))
 
   // allowance handling
-  const [approval, approveCallback] = useApproveCallback(parsedAmounts[Field.LIQUIDITY], V2_ROUTER_ADDRESS)
+  const [approval, approveCallback] = useApproveCallback(parsedAmounts[Field.LIQUIDITY], V2_ROUTER_ADDRESSES[chainId])
 
   async function onAttemptToApprove() {
     // const pairContract: Contract | null = usePairContract(pair?.liquidityToken?.address)
@@ -137,7 +136,7 @@ export default function RemoveLiquidity() {
   const addTransaction = useTransactionAdder()
 
   async function onRemove() {
-    const router = getContract(hydraweb3RPC, V2_ROUTER_ADDRESS, AbiHydraV2Router01)
+    const router = getContract(hydraweb3RPC, V2_ROUTER_ADDRESSES[chainId], AbiHydraV2Router01)
 
     if (!chainId || !account?.address || !router) throw new Error('missing dependencies')
     const { [Field.CURRENCY_A]: currencyAmountA, [Field.CURRENCY_B]: currencyAmountB } = parsedAmounts

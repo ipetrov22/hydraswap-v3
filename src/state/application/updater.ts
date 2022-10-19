@@ -1,8 +1,8 @@
 import { Web3Provider } from '@ethersproject/providers'
 import { useWeb3React } from '@web3-react/core'
+import { useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import useDebounce from 'hooks/useDebounce'
 import useIsWindowVisible from 'hooks/useIsWindowVisible'
-import { ChainId } from 'hydra/sdk'
 import { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch } from 'state/hooks'
 
@@ -13,7 +13,7 @@ let interval: NodeJS.Timeout | undefined
 
 export default function Updater(): null {
   const { provider } = useWeb3React()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
   const dispatch = useAppDispatch()
   const windowVisible = useIsWindowVisible()
 

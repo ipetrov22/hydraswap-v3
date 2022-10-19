@@ -13,13 +13,19 @@ export class Currency extends NativeCurrency {
    * The only instance of the base class `Currency`.
    */
   public static readonly HYDRA: Currency = new Currency(ChainId.MAINNET, 8, 'HYDRA', 'Hydra')
+  public static readonly HYDRA_TESTNET: Currency = new Currency(ChainId.TESTNET, 8, 'HYDRA', 'Hydra')
   equals(other: Currency): boolean {
     return other.chainId === this.chainId && other.isToken && other.name?.toLowerCase() === this.name?.toLowerCase()
   }
   get wrapped(): Token {
-    return WHYDRA[ChainId.MAINNET]
+    const chainId: keyof typeof WHYDRA = this.chainId
+    return WHYDRA[chainId]
   }
 }
 
-const HYDRA = Currency.HYDRA
-export { HYDRA }
+const { HYDRA, HYDRA_TESTNET } = Currency
+const HYDRA_CURRENCIES = {
+  [ChainId.MAINNET]: HYDRA,
+  [ChainId.TESTNET]: HYDRA_TESTNET,
+}
+export { HYDRA, HYDRA_CURRENCIES }

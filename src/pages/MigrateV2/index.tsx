@@ -1,9 +1,8 @@
 import { Trans } from '@lingui/macro'
 import MigrateV2PositionCard from 'components/PositionCard/V2'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
-import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
+import { useHydraChainId, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { PairState, useV2Pairs } from 'hooks/useV2Pairs'
-import { ChainId } from 'hydra/sdk'
 import { Pair } from 'hydra-v2-sdk'
 import { usePairBalancesWithLoadingIndicator } from 'lib/hooks/useCurrencyBalance'
 import { ReactNode, useMemo } from 'react'
@@ -31,7 +30,7 @@ function EmptyState({ message }: { message: ReactNode }) {
 export default function MigrateV2() {
   const theme = useTheme()
   const [account] = useHydraWalletAddress()
-  const chainId = ChainId.MAINNET
+  const [chainId] = useHydraChainId()
 
   const v2FactoryAddress = chainId ? V2_FACTORY_ADDRESSES[chainId] : undefined
 

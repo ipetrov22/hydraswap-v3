@@ -3,6 +3,7 @@
  */
 export enum SupportedChainId {
   MAINNET = 1,
+  TESTNET = 2,
   ROPSTEN = 3,
   RINKEBY = 4,
   GOERLI = 5,
@@ -23,6 +24,7 @@ export enum SupportedChainId {
 
 export const CHAIN_IDS_TO_NAMES = {
   [SupportedChainId.MAINNET]: 'mainnet',
+  [SupportedChainId.TESTNET]: 'testnet',
   [SupportedChainId.ROPSTEN]: 'ropsten',
   [SupportedChainId.RINKEBY]: 'rinkeby',
   [SupportedChainId.GOERLI]: 'goerli',

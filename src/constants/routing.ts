@@ -237,10 +237,7 @@ type ChainTokenList = {
 
 const WETH_ONLY: ChainTokenList = {
   [ChainId.MAINNET]: [WHYDRA[ChainId.MAINNET]],
-  [ChainId.ROPSTEN]: [WHYDRA[ChainId.ROPSTEN]],
-  [ChainId.RINKEBY]: [WHYDRA[ChainId.RINKEBY]],
-  [ChainId.GÖRLI]: [WHYDRA[ChainId.GÖRLI]],
-  [ChainId.KOVAN]: [WHYDRA[ChainId.KOVAN]],
+  [ChainId.TESTNET]: [WHYDRA[ChainId.TESTNET]],
 }
 
 // used to construct intermediary pairs for trading
