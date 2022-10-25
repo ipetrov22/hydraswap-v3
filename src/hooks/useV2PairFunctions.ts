@@ -45,8 +45,8 @@ export function useGetReserves(pairAddresses: (string | undefined)[]): CallState
           continue
         }
 
-        const reserve0 = result.executionResult?.formattedOutput['_reserve0']
-        const reserve1 = result.executionResult?.formattedOutput['_reserve1']
+        const reserve0 = result.executionResult?.formattedOutput[0]
+        const reserve1 = result.executionResult?.formattedOutput[1]
 
         reserves[i] = {
           valid: true,

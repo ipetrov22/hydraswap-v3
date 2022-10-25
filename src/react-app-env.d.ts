@@ -37,3 +37,4 @@ declare module 'babel-plugin-relay/macro' {
 }
 
 declare module 'hydraweb3-js'
+declare module 'ipetrov22-hydraweb3-js'

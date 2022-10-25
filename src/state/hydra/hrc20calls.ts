@@ -105,7 +105,7 @@ export function usePairBalancesOf(tokenAddresses: string[]): CallState[] {
           const _balances: CallState[] = []
           for (let i = 0; i < pairsLenght; i++) {
             const txPair = await allPairs(factory, account, i)
-            const pairAddress = txPair.executionResult.formattedOutput[0]
+            const pairAddress = txPair.executionResult.formattedOutput[0]?.toLowerCase()
             pairs.push('0x' + pairAddress)
           }
           for (let i = 0; i < tokenAddresses.length; i++) {

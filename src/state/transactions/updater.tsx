@@ -1,4 +1,4 @@
-import { EXPLORER_URL } from 'constants/index'
+import { EXPLORER_URLS } from 'constants/index'
 import { useHydraChainId, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -46,7 +46,7 @@ export default function Updater(): null {
     Object.keys(transactions)
       .filter((hash) => shouldCheck(lastBlockNumber, transactions[hash]))
       .forEach((hash) => {
-        fetch(EXPLORER_URL + '/api/tx/' + hash)
+        fetch(EXPLORER_URLS[chainId] + '/api/tx/' + hash)
           .then((r) => {
             r.json().then((resp) => {
               if (resp?.blockHash) {
