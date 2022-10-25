@@ -1,9 +1,10 @@
-import { FACTORY_ADDRESS as V3_FACTORY_ADDRESS } from '@uniswap/v3-sdk'
 import {
   MAINNET_V2_FACTORY,
   MAINNET_V2_ROUTER,
+  MAINNET_V3_FACTORY,
   TESTNET_V2_FACTORY,
   TESTNET_V2_ROUTER,
+  TESTNET_V3_FACTORY,
 } from 'hydra/contracts/contractAddresses'
 import { ChainId } from 'hydra/sdk'
 
@@ -26,7 +27,6 @@ export const V2_ROUTER_ADDRESSES: AddressMap = {
 // ** HYDRA CONTRACTS **
 
 // celo v3 addresses
-const CELO_V3_CORE_FACTORY_ADDRESSES = '0xAfE208a311B21f13EF87E33A90049fC17A7acDEc'
 const CELO_ROUTER_ADDRESS = '0x5615CDAb10dc425a742d643d949a7F474C01abc4'
 const CELO_V3_MIGRATOR_ADDRESSES = '0x3cFd4d48EDfDCC53D3f173F596f621064614C582'
 const CELO_MULTICALL_ADDRESS = '0x633987602DE5C4F337e3DbF265303A1080324204'
@@ -36,16 +36,8 @@ const CELO_TICK_LENS_ADDRESSES = '0x5f115D9113F88e0a0Db1b5033D90D4a9690AcD3D'
 
 /* V3 Contract Addresses */
 export const V3_CORE_FACTORY_ADDRESSES: AddressMap = {
-  ...constructSameAddressMap(V3_FACTORY_ADDRESS, [
-    SupportedChainId.OPTIMISM,
-    SupportedChainId.OPTIMISTIC_KOVAN,
-    SupportedChainId.ARBITRUM_ONE,
-    SupportedChainId.ARBITRUM_RINKEBY,
-    SupportedChainId.POLYGON_MUMBAI,
-    SupportedChainId.POLYGON,
-  ]),
-  [SupportedChainId.CELO]: CELO_V3_CORE_FACTORY_ADDRESSES,
-  [SupportedChainId.CELO_ALFAJORES]: CELO_V3_CORE_FACTORY_ADDRESSES,
+  [SupportedChainId.MAINNET]: MAINNET_V3_FACTORY,
+  [SupportedChainId.TESTNET]: TESTNET_V3_FACTORY,
 }
 
 export const V3_MIGRATOR_ADDRESSES: AddressMap = {
