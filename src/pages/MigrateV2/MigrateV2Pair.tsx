@@ -18,8 +18,8 @@ import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { PoolState, usePool } from 'hooks/usePools'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
-import { useV2LiquidityTokenPermit } from 'hooks/useV2LiquidityTokenPermit'
 import { useGetReservesRaw, useToken0Address, useToken1Address } from 'hooks/useV2PairFunctions'
+import { useV3MigratorContract } from 'hydra/hooks/useContract'
 import JSBI from 'jsbi'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertCircle, AlertTriangle, ArrowDown } from 'react-feather'
@@ -41,7 +41,6 @@ import { AutoRow, RowBetween, RowFixed } from '../../components/Row'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useToken } from '../../hooks/Tokens'
 import { usePairContract, useV2MigratorContract } from '../../hooks/useContract'
-import useIsArgentWallet from '../../hooks/useIsArgentWallet'
 import { useTotalSupplyHydra } from '../../hooks/useTotalSupply'
 import { useTokenBalance } from '../../state/connection/hooks'
 import { TransactionType } from '../../state/transactions/types'
@@ -231,30 +230,13 @@ function V2PairMigration({
   const [pendingMigrationHash, setPendingMigrationHash] = useState<string | null>(null)
 
   const migrator = useV2MigratorContract()
+  const migratorHyd = useV3MigratorContract()
 
   // approvals
-  const [approval, approveManually] = useApproveCallback(pairBalance, migrator?.address)
-  const { signatureData, gatherPermitSignature } = useV2LiquidityTokenPermit(pairBalance, migrator?.address)
-
-  const isArgentWallet = useIsArgentWallet()
-
+  const [approval, approveManually] = useApproveCallback(pairBalance, migratorHyd?.address)
   const approve = useCallback(async () => {
-    if (isArgentWallet) {
-      // sushi has to be manually approved
-      await approveManually()
-    } else if (gatherPermitSignature) {
-      try {
-        await gatherPermitSignature()
-      } catch (error) {
-        // try to approve if gatherPermitSignature failed for any reason other than the user rejecting it
-        if (error?.code !== 4001) {
-          await approveManually()
-        }
-      }
-    } else {
-      await approveManually()
-    }
-  }, [isArgentWallet, gatherPermitSignature, approveManually])
+    await approveManually()
+  }, [approveManually])
 
   const addTransaction = useTransactionAdder()
   const isMigrationPending = useIsTransactionPending(pendingMigrationHash ?? undefined)
@@ -273,23 +255,9 @@ function V2PairMigration({
     )
       return
 
-    const deadlineToUse = signatureData?.deadline ?? deadline
+    const deadlineToUse = deadline
 
     const data: string[] = []
-
-    // permit if necessary
-    if (signatureData) {
-      data.push(
-        migrator.interface.encodeFunctionData('selfPermit', [
-          pair.address,
-          `0x${pairBalance.quotient.toString(16)}`,
-          deadlineToUse,
-          signatureData.v,
-          signatureData.r,
-          signatureData.s,
-        ])
-      )
-    }
 
     // create/initialize pool if necessary
     if (noLiquidity) {
@@ -366,7 +334,6 @@ function V2PairMigration({
     v3Amount1Min,
     account,
     deadline,
-    signatureData,
     addTransaction,
     pair,
     currency0,
@@ -597,10 +564,9 @@ function V2PairMigration({
             {!isSuccessfullyMigrated && !isMigrationPending ? (
               <AutoColumn gap="12px" style={{ flex: '1' }}>
                 <ButtonConfirmed
-                  confirmed={approval === ApprovalState.APPROVED || signatureData !== null}
+                  confirmed={approval === ApprovalState.APPROVED}
                   disabled={
                     approval !== ApprovalState.NOT_APPROVED ||
-                    signatureData !== null ||
                     !v3Amount0Min ||
                     !v3Amount1Min ||
                     invalidRange ||
@@ -612,7 +578,7 @@ function V2PairMigration({
                     <Dots>
                       <Trans>Approving</Trans>
                     </Dots>
-                  ) : approval === ApprovalState.APPROVED || signatureData !== null ? (
+                  ) : approval === ApprovalState.APPROVED ? (
                     <Trans>Allowed</Trans>
                   ) : (
                     <Trans>Allow LP token migration</Trans>
@@ -627,7 +593,7 @@ function V2PairMigration({
                   !v3Amount0Min ||
                   !v3Amount1Min ||
                   invalidRange ||
-                  (approval !== ApprovalState.APPROVED && signatureData === null) ||
+                  approval !== ApprovalState.APPROVED ||
                   confirmingMigration ||
                   isMigrationPending ||
                   isSuccessfullyMigrated
