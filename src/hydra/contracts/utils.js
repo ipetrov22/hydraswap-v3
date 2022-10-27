@@ -1,5 +1,11 @@
+import { base58 } from 'ethers/lib/utils'
+
 import { MulticallAbi } from './abi'
 import { TESTNET_MULTICALL } from './contractAddresses'
+
+export const hydraToHexAddress = (address) => {
+  return '0x' + Buffer.from(base58.decode(address)).toString('hex').substring(2, 42)
+}
 
 export const getContract = (hydraweb3Extension, contractAddress, abi) => {
   try {

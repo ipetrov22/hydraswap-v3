@@ -1,9 +1,7 @@
 import { Contract } from '@ethersproject/contracts'
-import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { CurrencyAmount, Fraction, Percent, Price, Token } from '@uniswap/sdk-core'
 import { FeeAmount, Pool, Position, priceToClosestTick, TickMath } from '@uniswap/v3-sdk'
-import { sendEvent } from 'components/analytics'
 import Badge, { BadgeVariant } from 'components/Badge'
 import { ButtonConfirmed } from 'components/Button'
 import { BlueCard, DarkGreyCard, LightCard, YellowCard } from 'components/Card'
@@ -13,13 +11,14 @@ import RangeSelector from 'components/RangeSelector'
 import RateToggle from 'components/RateToggle'
 import SettingsTab from 'components/Settings'
 import { Dots } from 'components/swap/styleds'
-import { useHydraChainId, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
+import { useHydraChainId, useHydraHexAddress, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallback } from 'hooks/useApproveCallback'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import { PoolState, usePool } from 'hooks/usePools'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { useGetReservesRaw, useToken0Address, useToken1Address } from 'hooks/useV2PairFunctions'
-import { useV3MigratorContract } from 'hydra/hooks/useContract'
+import { multicall as migratorMulticall } from 'hydra/contracts/v3MigratorFunctions'
+import { useV2PairContract, useV3MigratorContract, useV3MigratorInterface } from 'hydra/hooks/useContract'
 import JSBI from 'jsbi'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertCircle, AlertTriangle, ArrowDown } from 'react-feather'
@@ -40,13 +39,11 @@ import FormattedCurrencyAmount from '../../components/FormattedCurrencyAmount'
 import { AutoRow, RowBetween, RowFixed } from '../../components/Row'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useToken } from '../../hooks/Tokens'
-import { usePairContract, useV2MigratorContract } from '../../hooks/useContract'
 import { useTotalSupplyHydra } from '../../hooks/useTotalSupply'
 import { useTokenBalance } from '../../state/connection/hooks'
 import { TransactionType } from '../../state/transactions/types'
 import { BackArrow, ExternalLink, ThemedText } from '../../theme'
 import { isAddress } from '../../utils'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { currencyId } from '../../utils/currencyId'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { BodyWrapper } from '../AppBody'
@@ -123,6 +120,7 @@ function V2PairMigration({
   token1: Token
 }) {
   const [account] = useHydraWalletAddress()
+  const [hexAddress] = useHydraHexAddress()
   const [chainId] = useHydraChainId()
   const theme = useTheme()
 
@@ -229,11 +227,12 @@ function V2PairMigration({
   const [confirmingMigration, setConfirmingMigration] = useState<boolean>(false)
   const [pendingMigrationHash, setPendingMigrationHash] = useState<string | null>(null)
 
-  const migrator = useV2MigratorContract()
-  const migratorHyd = useV3MigratorContract()
+  const migrator = useV3MigratorContract()
+  const migratorIface = useV3MigratorInterface()
 
   // approvals
-  const [approval, approveManually] = useApproveCallback(pairBalance, migratorHyd?.address)
+  const [approval, approveManually] = useApproveCallback(pairBalance, migrator?.address)
+
   const approve = useCallback(async () => {
     await approveManually()
   }, [approveManually])
@@ -262,7 +261,7 @@ function V2PairMigration({
     // create/initialize pool if necessary
     if (noLiquidity) {
       data.push(
-        migrator.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [
+        migratorIface.encodeFunctionData('createAndInitializePoolIfNecessary', [
           token0.address,
           token1.address,
           feeAmount,
@@ -273,7 +272,7 @@ function V2PairMigration({
 
     // TODO could save gas by not doing this in multicall
     data.push(
-      migrator.interface.encodeFunctionData('migrate', [
+      migratorIface.encodeFunctionData('migrate', [
         {
           pair: pair.address,
           liquidityToMigrate: `0x${pairBalance.quotient.toString(16)}`,
@@ -285,42 +284,35 @@ function V2PairMigration({
           tickUpper,
           amount0Min: `0x${v3Amount0Min.toString(16)}`,
           amount1Min: `0x${v3Amount1Min.toString(16)}`,
-          recipient: account,
+          recipient: hexAddress,
           deadline: deadlineToUse,
           refundAsETH: true, // hard-code this for now
         },
       ])
     )
-
+    console.log(data)
     setConfirmingMigration(true)
+    account &&
+      migratorMulticall(migrator, data, account)
+        .then((tx) => {
+          console.log(tx)
+          tx.hash = tx.id
 
-    migrator.estimateGas
-      .multicall(data)
-      .then((gasEstimate) => {
-        return migrator
-          .multicall(data, { gasLimit: calculateGasMargin(gasEstimate) })
-          .then((response: TransactionResponse) => {
-            sendEvent({
-              category: 'Migrate',
-              action: `V2->V3`,
-              label: `${currency0.symbol}/${currency1.symbol}`,
-            })
-
-            addTransaction(response, {
-              type: TransactionType.MIGRATE_LIQUIDITY_V3,
-              baseCurrencyId: currencyId(currency0),
-              quoteCurrencyId: currencyId(currency1),
-              isFork: false,
-            })
-            setPendingMigrationHash(response.hash)
+          addTransaction(tx, {
+            type: TransactionType.MIGRATE_LIQUIDITY_V3,
+            baseCurrencyId: currencyId(currency0),
+            quoteCurrencyId: currencyId(currency1),
+            isFork: false,
           })
-      })
-      .catch(() => {
-        setConfirmingMigration(false)
-      })
+          setPendingMigrationHash(tx.hash)
+        })
+        .catch(() => {
+          setConfirmingMigration(false)
+        })
   }, [
     chainId,
     migrator,
+    migratorIface,
     noLiquidity,
     blockTimestamp,
     token0,
@@ -333,6 +325,7 @@ function V2PairMigration({
     v3Amount0Min,
     v3Amount1Min,
     account,
+    hexAddress,
     deadline,
     addTransaction,
     pair,
@@ -634,7 +627,7 @@ export default function MigrateV2Pair() {
 
   // get pair contract
   const validatedAddress = isAddress(address)
-  const pair = usePairContract(validatedAddress ? validatedAddress : undefined)
+  const pair = useV2PairContract(validatedAddress ? validatedAddress : undefined)
 
   // get token addresses from pair contract
   const token0Address = useToken0Address(validatedAddress || undefined)

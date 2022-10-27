@@ -1,6 +1,7 @@
+import { hydraToHexAddress } from 'hydra/contracts/utils'
 import { ChainId } from 'hydra/sdk'
 import { getChainId } from 'hydra/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import useHydra from './useHydra'
 
@@ -64,6 +65,12 @@ export function useHydraWalletAddress() {
   }, [account])
 
   return [addr]
+}
+
+export function useHydraHexAddress() {
+  const [addr] = useHydraWalletAddress()
+  const hexAddr = useMemo(() => addr && hydraToHexAddress(addr), [addr])
+  return [hexAddr]
 }
 
 export function useHydraChainId(): ChainId[] {
