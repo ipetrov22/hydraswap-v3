@@ -290,7 +290,7 @@ function V2PairMigration({
         },
       ])
     )
-    console.log(data)
+
     setConfirmingMigration(true)
     account &&
       migratorMulticall(migrator, data, account)
@@ -306,7 +306,8 @@ function V2PairMigration({
           })
           setPendingMigrationHash(tx.hash)
         })
-        .catch(() => {
+        .catch((e) => {
+          console.log(e)
           setConfirmingMigration(false)
         })
   }, [

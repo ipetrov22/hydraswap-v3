@@ -1,5 +1,4 @@
 import { Trans } from '@lingui/macro'
-import { useWeb3React } from '@web3-react/core'
 import { PageName } from 'components/AmplitudeAnalytics/constants'
 import { ElementName, Event, EventName } from 'components/AmplitudeAnalytics/constants'
 import { Trace } from 'components/AmplitudeAnalytics/Trace'
@@ -11,7 +10,6 @@ import PositionList from 'components/PositionList'
 import { RowBetween, RowFixed } from 'components/Row'
 import { SwitchLocaleLink } from 'components/SwitchLocaleLink'
 import { isSupportedChain } from 'constants/chains'
-import useHydra from 'hooks/useHydra'
 import { useV3Positions } from 'hooks/useV3Positions'
 import { useCallback } from 'react'
 import { AlertTriangle, BookOpen, ChevronDown, ChevronsRight, Inbox, Layers, PlusCircle } from 'react-feather'
@@ -23,7 +21,7 @@ import { HideSmall, ThemedText } from 'theme'
 import { PositionDetails } from 'types/position'
 
 import { V2_FACTORY_ADDRESSES } from '../../constants/addresses'
-import useAddHydraAccExtension, { account as accountHydra } from '../../hooks/useAddHydraAccExtension'
+import { useHydraChainId, useHydraWalletAddress } from '../../hooks/useAddHydraAccExtension'
 import CTACards from './CTACards'
 import { LoadingRows } from './styleds'
 
@@ -186,11 +184,8 @@ function WrongNetworkCard() {
 }
 
 export default function Pool() {
-  const { chainId } = useWeb3React()
-  const { walletExtension, hydraweb3Extension } = useHydra()
-
-  useAddHydraAccExtension(walletExtension, hydraweb3Extension)
-  const account = accountHydra?.address
+  const [chainId] = useHydraChainId()
+  const [account] = useHydraWalletAddress()
   const { positions, loading: positionsLoading } = useV3Positions(undefined) // account must be passed to hook
 
   const toggleConnectModal = useToggleConnectModal()
