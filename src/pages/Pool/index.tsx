@@ -186,7 +186,7 @@ function WrongNetworkCard() {
 export default function Pool() {
   const [chainId] = useHydraChainId()
   const [account] = useHydraWalletAddress()
-  const { positions, loading: positionsLoading } = useV3Positions(undefined) // account must be passed to hook
+  const { positions, loading: positionsLoading } = useV3Positions(account) // account must be passed to hook
 
   const toggleConnectModal = useToggleConnectModal()
   const connectHydra = useConnectHydra()

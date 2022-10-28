@@ -16,6 +16,8 @@ export const MAINNET_V3_FACTORY = ZERO_ADDRESS
 export const TESTNET_V3_FACTORY = '0x0f5d2434f6ddd9f4ee9ca0789005b31792eda300'
 export const MAINNET_V3_MIGRATOR = ZERO_ADDRESS
 export const TESTNET_V3_MIGRATOR = '0x1ff16db823020d0a318a8d776e47151fddc2422c'
+export const MAINNET_NONFUNGIBLE_POSITION_MANAGER = ZERO_ADDRESS
+export const TESTNET_NONFUNGIBLE_POSITION_MANAGER = '0x11413b1e0377b84524bbb5824af3513548c70994'
 
 export const getAddressV2Factory = (chainId: ChainId | undefined) => {
   if (!chainId) return undefined

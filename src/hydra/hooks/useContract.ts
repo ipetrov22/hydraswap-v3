@@ -1,7 +1,7 @@
 import { Interface } from '@ethersproject/abi'
-import { V3_MIGRATOR_ADDRESSES } from 'constants/addresses'
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, V3_MIGRATOR_ADDRESSES } from 'constants/addresses'
 import { useHydraChainId, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
-import { AbiHydraV2Pair, V3MigratorAbi } from 'hydra/contracts/abi'
+import { AbiHydraV2Pair, NonfungiblePositionManagerAbi, V3MigratorAbi } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
 import { useMemo } from 'react'
 
@@ -23,4 +23,9 @@ export function useV3MigratorInterface() {
 
 export function useV2PairContract(address: string | undefined) {
   return useContract(address ?? '', AbiHydraV2Pair)
+}
+
+export function useV3NFTPositionManagerContract() {
+  const [chainId] = useHydraChainId()
+  return useContract(NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId], NonfungiblePositionManagerAbi)
 }
