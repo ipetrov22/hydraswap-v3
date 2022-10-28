@@ -2,7 +2,6 @@ import { Interface } from '@ethersproject/abi'
 import { BigNumber } from '@ethersproject/bignumber'
 import { useHydraLibrary, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { contractCall, getMultipleContractSingleData } from 'hydra/contracts/utils'
-import { useContract } from 'hydra/hooks/useContract'
 import { useEffect, useMemo, useState } from 'react'
 import { CallState } from 'state/hydra/hrc20calls'
 
@@ -56,23 +55,46 @@ export function useMultipleContractSingleData(
   return returnData
 }
 
-// should be made to return CallState[]
-export function useSingleCallResult(address: string, abi: any[], methodName: string) {
+export function useSingleCallResult(contract: any, methodName: string, callInputs?: (string | undefined)[]) {
   const [account] = useHydraWalletAddress()
-  const [returnData, setReturnData] = useState<undefined | string>()
-  const contract = useContract(address, abi)
+  const [returnData, setReturnData] = useState<CallState>({
+    valid: false,
+    result: undefined,
+    loading: false,
+    syncing: false,
+    error: false,
+  })
+
+  const callInputsStringified = useMemo(() => JSON.stringify(callInputs ?? []), [callInputs])
 
   useEffect(() => {
+    const callInputs = JSON.parse(callInputsStringified)
     account &&
-      contractCall(contract, methodName, [], account)
+      contract &&
+      contractCall(contract, methodName, callInputs ?? [], account)
         .then(({ executionResult }) => {
           if (executionResult?.excepted === 'None') {
-            const res = executionResult.formattedOutput[0]
-            setReturnData(typeof res === 'string' ? res : res?.toString())
+            const res = {
+              valid: true,
+              result: executionResult.formattedOutput,
+              loading: false,
+              syncing: false,
+              error: false,
+            }
+            setReturnData(res)
+          } else {
+            const res = {
+              valid: false,
+              result: undefined,
+              loading: false,
+              syncing: false,
+              error: true,
+            }
+            setReturnData(res)
           }
         })
         .catch(console.log)
-  }, [contract, account, methodName])
+  }, [contract, account, methodName, callInputsStringified])
 
   return returnData
 }

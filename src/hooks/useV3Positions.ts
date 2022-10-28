@@ -1,9 +1,9 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { CallStateResult, useSingleCallResult, useSingleContractMultipleData } from 'lib/hooks/multicall'
+import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
+import { useSingleCallResult } from 'lib/hooks/hydraMulticall'
+import { CallStateResult, useSingleContractMultipleData } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
 import { PositionDetails } from 'types/position'
-
-import { useV3NFTPositionManagerContract } from './useContract'
 
 interface UseV3PositionsResults {
   loading: boolean
@@ -68,6 +68,7 @@ export function useV3Positions(account: string | null | undefined): UseV3Positio
   const { loading: balanceLoading, result: balanceResult } = useSingleCallResult(positionManager, 'balanceOf', [
     account ?? undefined,
   ])
+  console.log(balanceResult)
 
   // we don't expect any account balance to ever exceed the bounds of max safe int
   const accountBalance: number | undefined = balanceResult?.[0]?.toNumber()
