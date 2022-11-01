@@ -54,3 +54,21 @@ export const getMultipleContractSingleData = async (
   const tx = await contractCall(multicall, 'aggregate', [calls], senderAddress)
   return tx
 }
+
+export const getSingleContractMultipleData = async (
+  hydraweb3Extension,
+  senderAddress = '',
+  target,
+  iface,
+  methodName = '',
+  callInputs = []
+) => {
+  const multicall = getMulticallContract(hydraweb3Extension)
+  const calls = callInputs.map((callInput) => {
+    const callData = iface.encodeFunctionData(methodName, callInput)
+    return { target, callData }
+  })
+
+  const tx = await contractCall(multicall, 'aggregate', [calls], senderAddress)
+  return tx
+}
