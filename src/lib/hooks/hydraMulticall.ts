@@ -58,7 +58,11 @@ export function useMultipleContractSingleData(
   return returnData
 }
 
-export function useSingleCallResult(contract: any, methodName: string, callInputs?: (string | undefined)[]) {
+export function useSingleCallResult(
+  contract: any,
+  methodName: string,
+  callInputs?: (string | BigNumber | undefined)[]
+) {
   const [account] = useHydraWalletAddress()
   const [returnData, setReturnData] = useState<CallState>({
     valid: false,
@@ -96,7 +100,9 @@ export function useSingleCallResult(contract: any, methodName: string, callInput
             setReturnData(res)
           }
         })
-        .catch(console.log)
+        .catch((e) => {
+          console.log(e)
+        })
   }, [contract, account, methodName, callInputsStringified])
 
   return returnData
@@ -121,7 +127,6 @@ export function useSingleContractMultipleData(
     if (library && account) {
       getSingleContractMultipleData(library, account, address, iface, methodName, callInputs)
         .then(({ executionResult }) => {
-          console.log(executionResult, methodName)
           if (executionResult?.excepted === 'None') {
             const res = executionResult.formattedOutput[1].map((x: any) => {
               const decoded = iface.decodeFunctionResult(methodName, '0x' + x)

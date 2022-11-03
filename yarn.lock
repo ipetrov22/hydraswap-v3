@@ -11616,10 +11616,10 @@ ipaddr.js@1.9.1, ipaddr.js@^1.9.0:
   resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-1.9.1.tgz#bff38543eeb8984825079ff3a2a8e6cbd46781b3"
   integrity sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==
 
-ipetrov22-hydraweb3-js@^0.0.14:
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/ipetrov22-hydraweb3-js/-/ipetrov22-hydraweb3-js-0.0.14.tgz#219d7f1522d279d9f73e5723709cbd1e870f5c73"
-  integrity sha512-coQkD0nLcvPsc2hcUVhasf3JVAgVOngC/VexgaNT9/yEHzuix2RQwPCFxzS8wrxzTQtPD9de/XK5qAi5ZXlcRA==
+ipetrov22-hydraweb3-js@^0.0.15:
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/ipetrov22-hydraweb3-js/-/ipetrov22-hydraweb3-js-0.0.15.tgz#7783ad47e809a03900a7fb3747ba3e116796e69c"
+  integrity sha512-zWw06isexk9sh8RohDkD/p6fr8xoUJra3jHYwSoo+6htujy7JRyWdwX5GyUkjd/62/XeOWtvlfWP/W0RdP8nlg==
   dependencies:
     "@ethersproject/abi" "^5.7.0"
     axios "^0.18.0"

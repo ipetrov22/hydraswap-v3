@@ -1,12 +1,12 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Pool } from '@uniswap/v3-sdk'
-import { useSingleCallResult } from 'lib/hooks/multicall'
+import { callCollect } from 'hydra/contracts/positionManagerFunctions'
+import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
+import { useSingleCallResult } from 'lib/hooks/hydraMulticall'
 import useBlockNumber from 'lib/hooks/useBlockNumber'
 import { useEffect, useState } from 'react'
 import { unwrappedToken } from 'utils/unwrappedToken'
-
-import { useV3NFTPositionManagerContract } from './useContract'
 
 const MAX_UINT128 = BigNumber.from(2).pow(128).sub(1)
 
@@ -16,8 +16,8 @@ export function useV3PositionFees(
   tokenId?: BigNumber,
   asWETH = false
 ): [CurrencyAmount<Currency>, CurrencyAmount<Currency>] | [undefined, undefined] {
-  const positionManager = useV3NFTPositionManagerContract(false)
-  const owner: string | undefined = useSingleCallResult(tokenId ? positionManager : null, 'ownerOf', [tokenId])
+  const positionManager = useV3NFTPositionManagerContract()
+  const owner: string | undefined = useSingleCallResult(tokenId ? positionManager : null, 'ownerOf', [tokenId?._hex])
     .result?.[0]
 
   const tokenIdHexString = tokenId?.toHexString()
@@ -28,19 +28,19 @@ export function useV3PositionFees(
   const [amounts, setAmounts] = useState<[BigNumber, BigNumber] | undefined>()
   useEffect(() => {
     if (positionManager && tokenIdHexString && owner) {
-      positionManager.callStatic
-        .collect(
-          {
-            tokenId: tokenIdHexString,
-            recipient: owner, // some tokens might fail if transferred to address(0)
-            amount0Max: MAX_UINT128,
-            amount1Max: MAX_UINT128,
-          },
-          { from: owner } // need to simulate the call as the owner
-        )
-        .then((results) => {
-          setAmounts([results.amount0, results.amount1])
+      callCollect(positionManager, owner.toLowerCase(), {
+        tokenId: tokenIdHexString,
+        recipient: owner, // some tokens might fail if transferred to address(0)
+        amount0Max: MAX_UINT128?._hex,
+        amount1Max: MAX_UINT128?._hex,
+      })
+        .then(({ executionResult }) => {
+          if (executionResult?.excepted === 'None') {
+            const [res1, res2] = executionResult.formattedOutput
+            setAmounts([BigNumber.from(res1?.toString()), BigNumber.from(res2?.toString())])
+          }
         })
+        .catch(console.log)
     }
   }, [positionManager, tokenIdHexString, owner, latestBlockNumber])
 
