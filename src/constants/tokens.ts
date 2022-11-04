@@ -104,7 +104,14 @@ export const AMPL = new Token(
 )
 export const DAI = new Token(
   SupportedChainId.MAINNET,
-  '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+  'abc2cd00700e06922bcf30fe0ad648507113cc56',
+  18,
+  'DAI',
+  'HYDRA-Pegged DAI'
+)
+export const DAI_TESTNET = new Token(
+  SupportedChainId.TESTNET,
+  '2f859738695d1699844ec197359f55c306c4eb74',
   18,
   'DAI',
   'Dai Stablecoin'

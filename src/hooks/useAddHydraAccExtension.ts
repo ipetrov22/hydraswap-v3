@@ -67,9 +67,9 @@ export function useHydraWalletAddress() {
   return [addr]
 }
 
-export function useHydraHexAddress() {
+export function useHydraHexAddress(noPrefix?: boolean | undefined) {
   const [addr] = useHydraWalletAddress()
-  const hexAddr = useMemo(() => addr && hydraToHexAddress(addr), [addr])
+  const hexAddr = useMemo(() => addr && hydraToHexAddress(addr, noPrefix), [addr, noPrefix])
   return [hexAddr]
 }
 
