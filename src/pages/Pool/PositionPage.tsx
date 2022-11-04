@@ -506,7 +506,7 @@ export function PositionPage() {
     tokenId?._hex,
   ]).result?.[0]?.toLowerCase()
   const ownsNFT = owner === hexAddr || positionDetails?.operator === hexAddr
-  console.log(ownsNFT, owner, hexAddr)
+
   const feeValueUpper = inverted ? feeValue0 : feeValue1
   const feeValueLower = inverted ? feeValue1 : feeValue0
 
