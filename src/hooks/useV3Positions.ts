@@ -1,14 +1,13 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES } from 'constants/addresses'
 import { NonfungiblePositionManagerAbi } from 'hydra/contracts/abi'
-import { hydraToHexAddress } from 'hydra/contracts/utils'
 import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
 import { useSingleCallResult, useSingleContractMultipleData } from 'lib/hooks/hydraMulticall'
 import { useMemo } from 'react'
 import { Result } from 'state/hydra/hrc20calls'
 import { PositionDetails } from 'types/position'
 
-import { useHydraChainId } from './useAddHydraAccExtension'
+import { useHydraChainId, useHydraHexAddress } from './useAddHydraAccExtension'
 
 interface UseV3PositionsResults {
   loading: boolean
@@ -74,7 +73,7 @@ export function useV3PositionFromTokenId(tokenId: BigNumber | undefined): UseV3P
 export function useV3Positions(account: string | null | undefined): UseV3PositionsResults {
   const [chainId] = useHydraChainId()
   const positionManager = useV3NFTPositionManagerContract()
-  const hexAddr = useMemo(() => (account ? hydraToHexAddress(account) : undefined), [account])
+  const [hexAddr] = useHydraHexAddress()
 
   const { loading: balanceLoading, result: balanceResult } = useSingleCallResult(positionManager, 'balanceOf', [
     account ?? undefined,

@@ -19,6 +19,9 @@ export function useMultipleContractSingleData(
   const callInputsStringified = useMemo(() => JSON.stringify(callInputs), [callInputs])
 
   useEffect(() => {
+    // Ref: https://medium.com/geekculture/the-tricky-behavior-of-useeffect-hook-in-react-18-282ef4fb570a
+    let ignore = false // Workaround to React 18 introducing a new development-only check to Strict Mode.
+
     const addresses = JSON.parse(addressesStringified).filter((x: string | undefined) => !!x)
     const callInputs = JSON.parse(callInputsStringified)
     const iface = new Interface(abi)
@@ -38,7 +41,7 @@ export function useMultipleContractSingleData(
               }
             })
 
-            setReturnData(res)
+            !ignore && setReturnData(res)
           } else {
             const res = addresses.map(() => ({
               valid: false,
@@ -48,10 +51,13 @@ export function useMultipleContractSingleData(
               error: true,
             }))
 
-            setReturnData(res)
+            !ignore && setReturnData(res)
           }
         })
         .catch(console.log)
+    }
+    return () => {
+      ignore = true
     }
   }, [addressesStringified, abi, methodName, callInputsStringified, account, library])
 
@@ -75,6 +81,9 @@ export function useSingleCallResult(
   const callInputsStringified = useMemo(() => JSON.stringify(callInputs ?? []), [callInputs])
 
   useEffect(() => {
+    // Ref: https://medium.com/geekculture/the-tricky-behavior-of-useeffect-hook-in-react-18-282ef4fb570a
+    let ignore = false // Workaround to React 18 introducing a new development-only check to Strict Mode.
+
     const callInputs = JSON.parse(callInputsStringified)
     account &&
       contract &&
@@ -88,7 +97,7 @@ export function useSingleCallResult(
               syncing: false,
               error: false,
             }
-            setReturnData(res)
+            !ignore && setReturnData(res)
           } else {
             const res = {
               valid: false,
@@ -97,12 +106,16 @@ export function useSingleCallResult(
               syncing: false,
               error: true,
             }
-            setReturnData(res)
+            !ignore && setReturnData(res)
           }
         })
         .catch((e) => {
           console.log(e)
         })
+
+    return () => {
+      ignore = true
+    }
   }, [contract, account, methodName, callInputsStringified])
 
   return returnData
@@ -121,6 +134,9 @@ export function useSingleContractMultipleData(
   const callInputsStringified = useMemo(() => JSON.stringify(callInputs), [callInputs])
 
   useEffect(() => {
+    // Ref: https://medium.com/geekculture/the-tricky-behavior-of-useeffect-hook-in-react-18-282ef4fb570a
+    let ignore = false // Workaround to React 18 introducing a new development-only check to Strict Mode.
+
     const callInputs = JSON.parse(callInputsStringified)
     const iface = new Interface(abi)
 
@@ -139,7 +155,7 @@ export function useSingleContractMultipleData(
               }
             })
 
-            setReturnData(res)
+            !ignore && setReturnData(res)
           } else {
             const res = callInputs.map(() => ({
               valid: false,
@@ -149,10 +165,14 @@ export function useSingleContractMultipleData(
               error: true,
             }))
 
-            setReturnData(res)
+            !ignore && setReturnData(res)
           }
         })
         .catch(console.log)
+    }
+
+    return () => {
+      ignore = true
     }
   }, [callInputsStringified, address, abi, methodName, account, library])
 
