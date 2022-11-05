@@ -1,11 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { FeeAmount, NonfungiblePositionManager } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
-import { sendEvent } from 'components/analytics'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
+import { formatUnits } from 'ethers/lib/utils'
 import useParsedQueryString from 'hooks/useParsedQueryString'
 import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
 import { useCallback, useEffect, useState } from 'react'
@@ -39,7 +38,7 @@ import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES } from '../../constants/addresse
 import { ZERO_PERCENT } from '../../constants/misc'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useCurrency } from '../../hooks/Tokens'
-import { useHydraChainId, useHydraWalletAddress } from '../../hooks/useAddHydraAccExtension'
+import { useHydraChainId, useHydraHexAddress, useHydraWalletAddress } from '../../hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useDerivedPositionInfo } from '../../hooks/useDerivedPositionInfo'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
@@ -52,7 +51,6 @@ import { useTransactionAdder } from '../../state/transactions/hooks'
 import { TransactionType } from '../../state/transactions/types'
 import { useIsExpertMode, useUserSlippageToleranceWithDefault } from '../../state/user/hooks'
 import { ExternalLink, ThemedText } from '../../theme'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { currencyId } from '../../utils/currencyId'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { Dots } from '../Pool/styleds'
@@ -85,6 +83,7 @@ export default function AddLiquidity() {
   const { provider } = useWeb3React()
   const [chainId] = useHydraChainId()
   const [account] = useHydraWalletAddress()
+  const [hexAddr] = useHydraHexAddress()
 
   const theme = useTheme()
   const expertMode = useIsExpertMode()
@@ -244,58 +243,41 @@ export default function AddLiquidity() {
             })
           : NonfungiblePositionManager.addCallParameters(position, {
               slippageTolerance: allowedSlippage,
-              recipient: account,
+              recipient: hexAddr,
               deadline: deadline.toString(),
               useNative,
               createPool: noLiquidity,
             })
-
-      const txn: { to: string; data: string; value: string } = {
-        to: NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
-        data: calldata,
-        value,
-      }
+      const hydraValue = formatUnits(value, 8)
+      const txn = [
+        positionManager?.address, // contract address
+        calldata.substring(2), // calldata hex
+        hydraValue, // hydra amount
+        2500000, // gas limit
+        account, // sender address
+      ]
 
       setAttemptingTxn(true)
+      positionManager?.provider
+        ?.rawCall('sendtocontract', txn)
+        .then((tx: any) => {
+          tx.hash = tx.id
 
-      provider
-        .getSigner()
-        .estimateGas(txn)
-        .then((estimate) => {
-          const newTxn = {
-            ...txn,
-            gasLimit: calculateGasMargin(estimate),
-          }
-
-          return provider
-            .getSigner()
-            .sendTransaction(newTxn)
-            .then((response: TransactionResponse) => {
-              setAttemptingTxn(false)
-              addTransaction(response, {
-                type: TransactionType.ADD_LIQUIDITY_V3_POOL,
-                baseCurrencyId: currencyId(baseCurrency),
-                quoteCurrencyId: currencyId(quoteCurrency),
-                createPool: Boolean(noLiquidity),
-                expectedAmountBaseRaw: parsedAmounts[Field.CURRENCY_A]?.quotient?.toString() ?? '0',
-                expectedAmountQuoteRaw: parsedAmounts[Field.CURRENCY_B]?.quotient?.toString() ?? '0',
-                feeAmount: position.pool.fee,
-              })
-              setTxHash(response.hash)
-              sendEvent({
-                category: 'Liquidity',
-                action: 'Add',
-                label: [currencies[Field.CURRENCY_A]?.symbol, currencies[Field.CURRENCY_B]?.symbol].join('/'),
-              })
-            })
-        })
-        .catch((error) => {
-          console.error('Failed to send transaction', error)
           setAttemptingTxn(false)
-          // we only care if the error is something _other_ than the user rejected the tx
-          if (error?.code !== 4001) {
-            console.error(error)
-          }
+          addTransaction(tx, {
+            type: TransactionType.ADD_LIQUIDITY_V3_POOL,
+            baseCurrencyId: currencyId(baseCurrency),
+            quoteCurrencyId: currencyId(quoteCurrency),
+            createPool: Boolean(noLiquidity),
+            expectedAmountBaseRaw: parsedAmounts[Field.CURRENCY_A]?.quotient?.toString() ?? '0',
+            expectedAmountQuoteRaw: parsedAmounts[Field.CURRENCY_B]?.quotient?.toString() ?? '0',
+            feeAmount: position.pool.fee,
+          })
+          setTxHash(tx.hash)
+        })
+        .catch((e: any) => {
+          console.log(e)
+          setAttemptingTxn(false)
         })
     } else {
       return
@@ -364,6 +346,8 @@ export default function AddLiquidity() {
 
   const handleDismissConfirmation = useCallback(() => {
     setShowConfirm(false)
+    setAttemptingTxn(false)
+
     // if there was a tx hash, we want to clear the input
     if (txHash) {
       onFieldAInput('')

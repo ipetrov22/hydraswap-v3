@@ -295,7 +295,6 @@ function V2PairMigration({
     account &&
       migratorMulticall(migrator, data, account)
         .then((tx) => {
-          console.log(tx)
           tx.hash = tx.id
 
           addTransaction(tx, {
