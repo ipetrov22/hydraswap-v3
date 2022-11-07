@@ -5,12 +5,15 @@ import { contractCall, getMultipleContractSingleData, getSingleContractMultipleD
 import { useEffect, useMemo, useState } from 'react'
 import { CallState } from 'state/hydra/hrc20calls'
 
+import useBlockNumber from './useBlockNumber'
+
 export function useMultipleContractSingleData(
   addresses: (string | undefined)[],
   abi: any[],
   methodName: string,
   callInputs: (string | number | BigNumber | (string | undefined)[] | undefined)[] = []
 ) {
+  const blockNumber = useBlockNumber()
   const [library] = useHydraLibrary()
   const [account] = useHydraWalletAddress()
   const [returnData, setReturnData] = useState<CallState[]>([])
@@ -59,7 +62,7 @@ export function useMultipleContractSingleData(
     return () => {
       ignore = true
     }
-  }, [addressesStringified, abi, methodName, callInputsStringified, account, library])
+  }, [addressesStringified, abi, methodName, callInputsStringified, account, library, blockNumber])
 
   return returnData
 }
@@ -69,6 +72,7 @@ export function useSingleCallResult(
   methodName: string,
   callInputs?: (string | BigNumber | undefined)[]
 ) {
+  const blockNumber = useBlockNumber()
   const [account] = useHydraWalletAddress()
   const [returnData, setReturnData] = useState<CallState>({
     valid: false,
@@ -116,7 +120,7 @@ export function useSingleCallResult(
     return () => {
       ignore = true
     }
-  }, [contract, account, methodName, callInputsStringified])
+  }, [contract, account, methodName, callInputsStringified, blockNumber])
 
   return returnData
 }
@@ -127,6 +131,7 @@ export function useSingleContractMultipleData(
   methodName: string,
   callInputs: ((string | number | BigNumber | (string | undefined)[] | undefined)[] | undefined)[] = []
 ) {
+  const blockNumber = useBlockNumber()
   const [library] = useHydraLibrary()
   const [account] = useHydraWalletAddress()
   const [returnData, setReturnData] = useState<CallState[]>([])
@@ -174,7 +179,7 @@ export function useSingleContractMultipleData(
     return () => {
       ignore = true
     }
-  }, [callInputsStringified, address, abi, methodName, account, library])
+  }, [callInputsStringified, address, abi, methodName, account, library, blockNumber])
 
   return returnData
 }

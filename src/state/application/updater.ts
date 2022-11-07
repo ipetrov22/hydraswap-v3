@@ -53,6 +53,11 @@ export default function Updater(): null {
 
   useEffect(() => {
     if (provider && chainId && windowVisible) {
+      if (interval) {
+        clearInterval(interval)
+        interval = undefined
+      }
+
       setState({ chainId, blockNumber: null })
       fetchBlock(provider, true)
       if (!interval) {
