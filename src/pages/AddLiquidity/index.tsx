@@ -2,7 +2,6 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { FeeAmount, NonfungiblePositionManager } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { formatUnits } from 'ethers/lib/utils'
 import useParsedQueryString from 'hooks/useParsedQueryString'
@@ -38,7 +37,12 @@ import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES } from '../../constants/addresse
 import { ZERO_PERCENT } from '../../constants/misc'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { useCurrency } from '../../hooks/Tokens'
-import { useHydraChainId, useHydraHexAddress, useHydraWalletAddress } from '../../hooks/useAddHydraAccExtension'
+import {
+  useHydraChainId,
+  useHydraHexAddress,
+  useHydraLibrary,
+  useHydraWalletAddress,
+} from '../../hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallback } from '../../hooks/useApproveCallback'
 import { useDerivedPositionInfo } from '../../hooks/useDerivedPositionInfo'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
@@ -80,7 +84,7 @@ export default function AddLiquidity() {
     feeAmount: feeAmountFromUrl,
     tokenId,
   } = useParams<{ currencyIdA?: string; currencyIdB?: string; feeAmount?: string; tokenId?: string }>()
-  const { provider } = useWeb3React()
+  const [library] = useHydraLibrary()
   const [chainId] = useHydraChainId()
   const [account] = useHydraWalletAddress()
   const [hexAddr] = useHydraHexAddress()
@@ -225,7 +229,7 @@ export default function AddLiquidity() {
   )
 
   async function onAdd() {
-    if (!chainId || !provider || !account) return
+    if (!chainId || !library || !account) return
 
     if (!positionManager || !baseCurrency || !quoteCurrency) {
       return

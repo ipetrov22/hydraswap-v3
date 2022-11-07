@@ -1,10 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { NonfungiblePositionManager } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
-import { sendEvent } from 'components/analytics'
 import RangeBadge from 'components/Badge/RangeBadge'
 import { ButtonConfirmed, ButtonPrimary } from 'components/Button'
 import { LightCard } from 'components/Card'
@@ -18,10 +16,17 @@ import { AddRemoveTabs } from 'components/NavigationTabs'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Slider from 'components/Slider'
 import Toggle from 'components/Toggle'
-import { useV3NFTPositionManagerContract } from 'hooks/useContract'
+import { formatUnits } from 'ethers/lib/utils'
+import {
+  useHydraChainId,
+  useHydraHexAddress,
+  useHydraLibrary,
+  useHydraWalletAddress,
+} from 'hooks/useAddHydraAccExtension'
 import useDebouncedChangeHandler from 'hooks/useDebouncedChangeHandler'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
+import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { useCallback, useMemo, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
@@ -35,7 +40,6 @@ import { ThemedText } from 'theme'
 import TransactionConfirmationModal, { ConfirmationModalContent } from '../../components/TransactionConfirmationModal'
 import { WRAPPED_NATIVE_CURRENCY } from '../../constants/tokens'
 import { TransactionType } from '../../state/transactions/types'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { currencyId } from '../../utils/currencyId'
 import AppBody from '../AppBody'
 import { ResponsiveHeaderText, SmallMaxButton, Wrapper } from './styled'
@@ -63,10 +67,14 @@ export default function RemoveLiquidityV3() {
 function Remove({ tokenId }: { tokenId: BigNumber }) {
   const { position } = useV3PositionFromTokenId(tokenId)
   const theme = useTheme()
-  const { account, chainId, provider } = useWeb3React()
+  const [hexAddr] = useHydraHexAddress()
+  const [account] = useHydraWalletAddress()
+  const [chainId] = useHydraChainId()
+  const [library] = useHydraLibrary()
+  const { provider } = useWeb3React()
 
-  // flag for receiving WETH
-  const [receiveWETH, setReceiveWETH] = useState(false)
+  // flag for receiving WHYDRA
+  const [receiveWHYDRA, setReceiveWHYDRA] = useState(false)
   const nativeCurrency = useNativeCurrency()
   const nativeWrappedSymbol = nativeCurrency.wrapped.symbol
 
@@ -81,7 +89,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
     feeValue1,
     outOfRange,
     error,
-  } = useDerivedV3BurnInfo(position, receiveWETH)
+  } = useDerivedV3BurnInfo(position, receiveWHYDRA)
   const { onPercentSelect } = useBurnV3ActionHandlers()
 
   const removed = position?.liquidity?.eq(0)
@@ -105,10 +113,12 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       !liquidityValue1 ||
       !deadline ||
       !account ||
+      !hexAddr ||
       !chainId ||
       !positionSDK ||
       !liquidityPercentage ||
-      !provider
+      !provider ||
+      !library
     ) {
       return
     }
@@ -123,48 +133,36 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       collectOptions: {
         expectedCurrencyOwed0: feeValue0 ?? CurrencyAmount.fromRawAmount(liquidityValue0.currency, 0),
         expectedCurrencyOwed1: feeValue1 ?? CurrencyAmount.fromRawAmount(liquidityValue1.currency, 0),
-        recipient: account,
+        recipient: hexAddr,
       },
     })
+    const hydraValue = formatUnits(value, 8)
+    const txn = [
+      positionManager?.address, // contract address
+      calldata.substring(2), // calldata hex
+      hydraValue, // hydra amount
+      2500000, // gas limit
+      account, // sender address
+    ]
 
-    const txn = {
-      to: positionManager.address,
-      data: calldata,
-      value,
-    }
+    positionManager?.provider
+      ?.rawCall('sendtocontract', txn)
+      .then((tx: any) => {
+        tx.hash = tx.id
 
-    provider
-      .getSigner()
-      .estimateGas(txn)
-      .then((estimate) => {
-        const newTxn = {
-          ...txn,
-          gasLimit: calculateGasMargin(estimate),
-        }
-
-        return provider
-          .getSigner()
-          .sendTransaction(newTxn)
-          .then((response: TransactionResponse) => {
-            sendEvent({
-              category: 'Liquidity',
-              action: 'RemoveV3',
-              label: [liquidityValue0.currency.symbol, liquidityValue1.currency.symbol].join('/'),
-            })
-            setTxnHash(response.hash)
-            setAttemptingTxn(false)
-            addTransaction(response, {
-              type: TransactionType.REMOVE_LIQUIDITY_V3,
-              baseCurrencyId: currencyId(liquidityValue0.currency),
-              quoteCurrencyId: currencyId(liquidityValue1.currency),
-              expectedAmountBaseRaw: liquidityValue0.quotient.toString(),
-              expectedAmountQuoteRaw: liquidityValue1.quotient.toString(),
-            })
-          })
-      })
-      .catch((error) => {
+        setTxnHash(tx.hash)
         setAttemptingTxn(false)
-        console.error(error)
+        addTransaction(tx, {
+          type: TransactionType.REMOVE_LIQUIDITY_V3,
+          baseCurrencyId: currencyId(liquidityValue0.currency),
+          quoteCurrencyId: currencyId(liquidityValue1.currency),
+          expectedAmountBaseRaw: liquidityValue0.quotient.toString(),
+          expectedAmountQuoteRaw: liquidityValue1.quotient.toString(),
+        })
+      })
+      .catch((e: any) => {
+        console.log(e)
+        setAttemptingTxn(false)
       })
   }, [
     positionManager,
@@ -172,11 +170,13 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
     liquidityValue1,
     deadline,
     account,
+    hexAddr,
     chainId,
     feeValue0,
     feeValue1,
     positionSDK,
     liquidityPercentage,
+    library,
     provider,
     tokenId,
     allowedSlippage,
@@ -185,6 +185,8 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
 
   const handleDismissConfirmation = useCallback(() => {
     setShowConfirm(false)
+    setAttemptingTxn(false)
+
     // if there was a tx hash, we want to clear the input
     if (txnHash) {
       onPercentSelectForSlider(0)
@@ -266,7 +268,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
     )
   }
 
-  const showCollectAsWeth = Boolean(
+  const showCollectAsWhydra = Boolean(
     liquidityValue0?.currency &&
       liquidityValue1?.currency &&
       (liquidityValue0.currency.isNative ||
@@ -396,15 +398,15 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
                 </AutoColumn>
               </LightCard>
 
-              {showCollectAsWeth && (
+              {showCollectAsWhydra && (
                 <RowBetween>
                   <ThemedText.DeprecatedMain>
                     <Trans>Collect as {nativeWrappedSymbol}</Trans>
                   </ThemedText.DeprecatedMain>
                   <Toggle
                     id="receive-as-weth"
-                    isActive={receiveWETH}
-                    toggle={() => setReceiveWETH((receiveWETH) => !receiveWETH)}
+                    isActive={receiveWHYDRA}
+                    toggle={() => setReceiveWHYDRA((receiveWHYDRA) => !receiveWHYDRA)}
                   />
                 </RowBetween>
               )}
