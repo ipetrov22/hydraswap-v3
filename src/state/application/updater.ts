@@ -6,7 +6,7 @@ import useIsWindowVisible from 'hooks/useIsWindowVisible'
 import { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch } from 'state/hooks'
 
-import { EXPLORER_URL } from '../../constants'
+import { EXPLORER_URLS } from '../../constants'
 import { updateBlockNumber } from './reducer'
 
 let interval: NodeJS.Timeout | undefined
@@ -37,7 +37,7 @@ export default function Updater(): null {
 
   const fetchBlock = useCallback(
     (library: Web3Provider | undefined, isAttachListener: boolean) => {
-      fetch(EXPLORER_URL + '/api/info')
+      fetch(EXPLORER_URLS[chainId] + '/api/info')
         .then((r) => {
           r.json().then((info) => {
             blockNumberCallback(info.height)
