@@ -4,6 +4,8 @@ import AbiHydraV2Pair from './abis/hydra_v2_pair.json'
 import AbiHydraV2Router01 from './abis/hydra_v2_router.json'
 import MulticallAbi from './abis/multicall.json'
 import NonfungiblePositionManagerAbi from './abis/nonfungible_position_manager.json'
+import AbiQuoter from './abis/quoter.json'
+import AbiQuoterV2 from './abis/quoter_v2.json'
 import TickLensAbi from './abis/tick_lens.json'
 import AbiToken from './abis/token.json'
 import V3MigratorAbi from './abis/v3_migrator.json'
@@ -15,6 +17,8 @@ export {
   AbiHydraV2Factory,
   AbiHydraV2Pair,
   AbiHydraV2Router01,
+  AbiQuoter,
+  AbiQuoterV2,
   AbiToken,
   AbiWrappedHydra,
   MulticallAbi,

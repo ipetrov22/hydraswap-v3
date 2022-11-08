@@ -2,12 +2,15 @@ import { Interface } from '@ethersproject/abi'
 import {
   MULTICALL_ADDRESSES,
   NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
+  QUOTER_ADDRESSES,
   TICK_LENS_ADDRESSES,
   V3_MIGRATOR_ADDRESSES,
 } from 'constants/addresses'
 import { useHydraChainId, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
 import {
   AbiHydraV2Pair,
+  AbiQuoter,
+  AbiQuoterV2,
   MulticallAbi,
   NonfungiblePositionManagerAbi,
   TickLensAbi,
@@ -49,4 +52,9 @@ export function useMulticallContract() {
 export function useTickLens() {
   const [chainId] = useHydraChainId()
   return useContract(TICK_LENS_ADDRESSES[chainId], TickLensAbi)
+}
+
+export function useQuoter(useQuoterV2: boolean) {
+  const [chainId] = useHydraChainId()
+  return useContract(QUOTER_ADDRESSES[chainId], useQuoterV2 ? AbiQuoterV2 : AbiQuoter)
 }

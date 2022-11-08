@@ -1,7 +1,12 @@
 import { Interface } from '@ethersproject/abi'
 import { BigNumber } from '@ethersproject/bignumber'
 import { useHydraLibrary, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
-import { contractCall, getMultipleContractSingleData, getSingleContractMultipleData } from 'hydra/contracts/utils'
+import {
+  contractCall,
+  getMultipleContractSingleData,
+  getSingleContractMultipleData,
+  getSingleContractWithCallData,
+} from 'hydra/contracts/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { CallState } from 'state/hydra/hrc20calls'
 
@@ -190,6 +195,65 @@ export function useSingleContractMultipleData(
       ignore = true
     }
   }, [callInputsStringified, address, abi, methodName, account, library, blockNumber])
+
+  return returnData
+}
+
+export function useSingleContractWithCallData(
+  address: string | undefined,
+  abi: any[] | undefined,
+  callDatas: string[]
+) {
+  const blockNumber = useBlockNumber()
+  const [library] = useHydraLibrary()
+  const [account] = useHydraWalletAddress()
+  const [returnData, setReturnData] = useState<CallState[]>([])
+
+  const callDatasStringified = useMemo(() => JSON.stringify(callDatas), [callDatas])
+
+  useEffect(() => {
+    // Ref: https://medium.com/geekculture/the-tricky-behavior-of-useeffect-hook-in-react-18-282ef4fb570a
+    let ignore = false // Workaround to React 18 introducing a new development-only check to Strict Mode.
+
+    const callDatas = JSON.parse(callDatasStringified)
+    const iface = new Interface(abi ?? [])
+
+    if (library && account && address) {
+      getSingleContractWithCallData(library, account, address, callDatas)
+        .then(({ executionResult }) => {
+          if (executionResult?.excepted === 'None') {
+            const res = executionResult.formattedOutput[1].map((x: any, i: number) => {
+              const methodName = iface.getFunction(callDatas[i].substring(0, 10))
+              const decoded = iface.decodeFunctionResult(methodName, '0x' + x)
+              return {
+                valid: true,
+                result: decoded,
+                loading: false,
+                syncing: false,
+                error: false,
+              }
+            })
+
+            !ignore && setReturnData(res)
+          } else {
+            const res = callDatas.map(() => ({
+              valid: false,
+              result: undefined,
+              loading: false,
+              syncing: false,
+              error: true,
+            }))
+
+            !ignore && setReturnData(res)
+          }
+        })
+        .catch(console.log)
+    }
+
+    return () => {
+      ignore = true
+    }
+  }, [address, abi, callDatasStringified, library, account, blockNumber])
 
   return returnData
 }

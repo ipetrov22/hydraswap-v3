@@ -1,6 +1,5 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, Token, TradeType } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
 import { sendAnalyticsEvent } from 'components/AmplitudeAnalytics'
 import { ElementName, Event, EventName, PageName, SectionName } from 'components/AmplitudeAnalytics/constants'
 import { Trace } from 'components/AmplitudeAnalytics/Trace'
@@ -20,7 +19,6 @@ import TokenSafetyModal from 'components/TokenSafety/TokenSafetyModal'
 import { MouseoverTooltip } from 'components/Tooltip'
 import { isSupportedChain } from 'constants/chains'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
-import useHydra from 'hooks/useHydra'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { Trade } from 'hydra-router-sdk'
@@ -51,7 +49,7 @@ import { SwitchLocaleLink } from '../../components/SwitchLocaleLink'
 import TokenWarningModal from '../../components/TokenWarningModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
-import useAddHydraAccExtension, { account as accountHydra } from '../../hooks/useAddHydraAccExtension'
+import { useHydraChainId, useHydraWalletAddress } from '../../hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from '../../hooks/useERC20Permit'
@@ -156,13 +154,12 @@ const formatSwapQuoteReceivedEventProperties = (
 const TRADE_STRING = 'SwapRouter'
 
 export default function Swap() {
+  const [account] = useHydraWalletAddress()
+  const [chainId] = useHydraChainId()
+
   const navigate = useNavigate()
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
-  const { walletExtension, hydraweb3Extension } = useHydra()
-  useAddHydraAccExtension(walletExtension, hydraweb3Extension)
-  const account = accountHydra?.address
-  const { chainId } = useWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
   const [newSwapQuoteNeedsLogging, setNewSwapQuoteNeedsLogging] = useState(true)
   const [fetchingSwapQuoteStartTime, setFetchingSwapQuoteStartTime] = useState<Date | undefined>()
