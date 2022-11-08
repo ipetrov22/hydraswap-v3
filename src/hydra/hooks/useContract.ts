@@ -1,7 +1,18 @@
 import { Interface } from '@ethersproject/abi'
-import { MULTICALL_ADDRESSES, NONFUNGIBLE_POSITION_MANAGER_ADDRESSES, V3_MIGRATOR_ADDRESSES } from 'constants/addresses'
+import {
+  MULTICALL_ADDRESSES,
+  NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
+  TICK_LENS_ADDRESSES,
+  V3_MIGRATOR_ADDRESSES,
+} from 'constants/addresses'
 import { useHydraChainId, useHydraLibrary } from 'hooks/useAddHydraAccExtension'
-import { AbiHydraV2Pair, MulticallAbi, NonfungiblePositionManagerAbi, V3MigratorAbi } from 'hydra/contracts/abi'
+import {
+  AbiHydraV2Pair,
+  MulticallAbi,
+  NonfungiblePositionManagerAbi,
+  TickLensAbi,
+  V3MigratorAbi,
+} from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
 import { useMemo } from 'react'
 
@@ -33,4 +44,9 @@ export function useV3NFTPositionManagerContract() {
 export function useMulticallContract() {
   const [chainId] = useHydraChainId()
   return useContract(MULTICALL_ADDRESSES[chainId], MulticallAbi)
+}
+
+export function useTickLens() {
+  const [chainId] = useHydraChainId()
+  return useContract(TICK_LENS_ADDRESSES[chainId], TickLensAbi)
 }

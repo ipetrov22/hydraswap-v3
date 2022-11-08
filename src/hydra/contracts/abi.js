@@ -4,6 +4,7 @@ import AbiHydraV2Pair from './abis/hydra_v2_pair.json'
 import AbiHydraV2Router01 from './abis/hydra_v2_router.json'
 import MulticallAbi from './abis/multicall.json'
 import NonfungiblePositionManagerAbi from './abis/nonfungible_position_manager.json'
+import TickLensAbi from './abis/tick_lens.json'
 import AbiToken from './abis/token.json'
 import V3MigratorAbi from './abis/v3_migrator.json'
 import V3PoolAbi from './abis/v3_pool.json'
@@ -18,6 +19,7 @@ export {
   AbiWrappedHydra,
   MulticallAbi,
   NonfungiblePositionManagerAbi,
+  TickLensAbi,
   V3MigratorAbi,
   V3PoolAbi,
 }

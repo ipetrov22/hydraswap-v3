@@ -34,10 +34,20 @@ export function useMultipleContractSingleData(
         .then(({ executionResult }) => {
           if (executionResult?.excepted === 'None') {
             const res = executionResult.formattedOutput[1].map((x: any) => {
-              const decoded = iface.decodeFunctionResult(methodName, '0x' + x)
+              if (x) {
+                const decoded = iface.decodeFunctionResult(methodName, '0x' + x)
+                return {
+                  valid: true,
+                  result: decoded,
+                  loading: false,
+                  syncing: false,
+                  error: false,
+                }
+              }
+
               return {
                 valid: true,
-                result: decoded,
+                result: undefined,
                 loading: false,
                 syncing: false,
                 error: false,

@@ -18,6 +18,8 @@ export const MAINNET_V3_MIGRATOR = ZERO_ADDRESS
 export const TESTNET_V3_MIGRATOR = '0x1ff16db823020d0a318a8d776e47151fddc2422c'
 export const MAINNET_NONFUNGIBLE_POSITION_MANAGER = ZERO_ADDRESS
 export const TESTNET_NONFUNGIBLE_POSITION_MANAGER = '0x11413b1e0377b84524bbb5824af3513548c70994'
+export const MAINNET_TICK_LENS = ZERO_ADDRESS
+export const TESTNET_TICK_LENS = '0x8b1aa1b794ff9339f3ebd8e514c28e93abcb68a1'
 
 export const getAddressV2Factory = (chainId: ChainId | undefined) => {
   if (!chainId) return undefined
