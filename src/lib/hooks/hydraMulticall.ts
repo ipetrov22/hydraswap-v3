@@ -212,6 +212,10 @@ export function useSingleContractWithCallData(
   const callDatasStringified = useMemo(() => JSON.stringify(callDatas), [callDatas])
 
   useEffect(() => {
+    setReturnData([])
+  }, [callDatasStringified])
+
+  useEffect(() => {
     // Ref: https://medium.com/geekculture/the-tricky-behavior-of-useeffect-hook-in-react-18-282ef4fb570a
     let ignore = false // Workaround to React 18 introducing a new development-only check to Strict Mode.
 

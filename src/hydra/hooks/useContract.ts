@@ -22,6 +22,9 @@ import { useMemo } from 'react'
 export function useContract(address: string, abi: any[]) {
   const [library] = useHydraLibrary()
   const contract = useMemo(() => library && address && getContract(library, address, abi), [library, address, abi])
+  if (contract) {
+    contract.interface = new Interface(abi)
+  }
   return contract
 }
 
@@ -46,7 +49,8 @@ export function useV3NFTPositionManagerContract() {
 
 export function useMulticallContract() {
   const [chainId] = useHydraChainId()
-  return useContract(MULTICALL_ADDRESSES[chainId], MulticallAbi)
+  const contract = useContract(MULTICALL_ADDRESSES[chainId], MulticallAbi)
+  return contract
 }
 
 export function useTickLens() {
