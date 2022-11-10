@@ -1,6 +1,8 @@
 import { NativeCurrency, Token } from '@uniswap/sdk-core'
-import { HYDRA } from 'hydra/sdk'
+import { useHydraChainId } from 'hooks/useAddHydraAccExtension'
+import { HYDRA_CURRENCIES } from 'hydra/sdk'
 
 export default function useNativeCurrency(): NativeCurrency | Token {
-  return HYDRA
+  const [chainId] = useHydraChainId()
+  return HYDRA_CURRENCIES[chainId]
 }

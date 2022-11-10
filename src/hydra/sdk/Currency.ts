@@ -15,7 +15,7 @@ export class Currency extends NativeCurrency {
   public static readonly HYDRA: Currency = new Currency(ChainId.MAINNET, 8, 'HYDRA', 'Hydra')
   public static readonly HYDRA_TESTNET: Currency = new Currency(ChainId.TESTNET, 8, 'HYDRA', 'Hydra')
   equals(other: Currency): boolean {
-    return other.chainId === this.chainId && other.isToken && other.name?.toLowerCase() === this.name?.toLowerCase()
+    return other.chainId === this.chainId && other.name?.toLowerCase() === this.name?.toLowerCase()
   }
   get wrapped(): Token {
     const chainId: keyof typeof WHYDRA = this.chainId

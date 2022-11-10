@@ -19,13 +19,14 @@ import { Dots } from 'components/swap/styleds'
 import Toggle from 'components/Toggle'
 import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
 import { useToken } from 'hooks/Tokens'
-import { useV3NFTPositionManagerContract } from 'hooks/useContract'
+import { useHydraChainId, useHydraHexAddress, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import useIsTickAtLimit from 'hooks/useIsTickAtLimit'
 import { PoolState, usePool } from 'hooks/usePools'
 import useStablecoinPrice from 'hooks/useStablecoinPrice'
 import { useV3PositionFees } from 'hooks/useV3PositionFees'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
-import { useSingleCallResult } from 'lib/hooks/multicall'
+import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
+import { useSingleCallResult } from 'lib/hooks/hydraMulticall'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -316,7 +317,10 @@ const useInverter = ({
 
 export function PositionPage() {
   const { tokenId: tokenIdFromUrl } = useParams<{ tokenId?: string }>()
-  const { chainId, account, provider } = useWeb3React()
+  const [chainId] = useHydraChainId()
+  const [account] = useHydraWalletAddress()
+  const [hexAddr] = useHydraHexAddress(true)
+  const { provider } = useWeb3React()
   const theme = useTheme()
 
   const parsedTokenId = tokenIdFromUrl ? BigNumber.from(tokenIdFromUrl) : undefined
@@ -498,8 +502,10 @@ export function PositionPage() {
     provider,
   ])
 
-  const owner = useSingleCallResult(!!tokenId ? positionManager : null, 'ownerOf', [tokenId]).result?.[0]
-  const ownsNFT = owner === account || positionDetails?.operator === account
+  const owner = useSingleCallResult(!!tokenId ? positionManager : null, 'ownerOf', [
+    tokenId?._hex,
+  ]).result?.[0]?.toLowerCase()
+  const ownsNFT = owner === hexAddr || positionDetails?.operator === hexAddr
 
   const feeValueUpper = inverted ? feeValue0 : feeValue1
   const feeValueLower = inverted ? feeValue1 : feeValue0

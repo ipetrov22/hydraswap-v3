@@ -1,9 +1,13 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { CallStateResult, useSingleCallResult, useSingleContractMultipleData } from 'lib/hooks/multicall'
+import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES } from 'constants/addresses'
+import { NonfungiblePositionManagerAbi } from 'hydra/contracts/abi'
+import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
+import { useSingleCallResult, useSingleContractMultipleData } from 'lib/hooks/hydraMulticall'
 import { useMemo } from 'react'
+import { Result } from 'state/hydra/hrc20calls'
 import { PositionDetails } from 'types/position'
 
-import { useV3NFTPositionManagerContract } from './useContract'
+import { useHydraChainId, useHydraHexAddress } from './useAddHydraAccExtension'
 
 interface UseV3PositionsResults {
   loading: boolean
@@ -11,18 +15,22 @@ interface UseV3PositionsResults {
 }
 
 function useV3PositionsFromTokenIds(tokenIds: BigNumber[] | undefined): UseV3PositionsResults {
-  const positionManager = useV3NFTPositionManagerContract()
+  const [chainId] = useHydraChainId()
   const inputs = useMemo(() => (tokenIds ? tokenIds.map((tokenId) => [BigNumber.from(tokenId)]) : []), [tokenIds])
-  const results = useSingleContractMultipleData(positionManager, 'positions', inputs)
-
+  const results = useSingleContractMultipleData(
+    NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+    NonfungiblePositionManagerAbi,
+    'positions',
+    inputs
+  )
   const loading = useMemo(() => results.some(({ loading }) => loading), [results])
   const error = useMemo(() => results.some(({ error }) => error), [results])
 
   const positions = useMemo(() => {
-    if (!loading && !error && tokenIds) {
+    if (!loading && !error && tokenIds && tokenIds.length) {
       return results.map((call, i) => {
         const tokenId = tokenIds[i]
-        const result = call.result as CallStateResult
+        const result = call.result as Result
         return {
           tokenId,
           fee: result.fee,
@@ -33,8 +41,8 @@ function useV3PositionsFromTokenIds(tokenIds: BigNumber[] | undefined): UseV3Pos
           operator: result.operator,
           tickLower: result.tickLower,
           tickUpper: result.tickUpper,
-          token0: result.token0,
-          token1: result.token1,
+          token0: result.token0?.toLowerCase(),
+          token1: result.token1?.toLowerCase(),
           tokensOwed0: result.tokensOwed0,
           tokensOwed1: result.tokensOwed1,
         }
@@ -63,7 +71,9 @@ export function useV3PositionFromTokenId(tokenId: BigNumber | undefined): UseV3P
 }
 
 export function useV3Positions(account: string | null | undefined): UseV3PositionsResults {
+  const [chainId] = useHydraChainId()
   const positionManager = useV3NFTPositionManagerContract()
+  const [hexAddr] = useHydraHexAddress()
 
   const { loading: balanceLoading, result: balanceResult } = useSingleCallResult(positionManager, 'balanceOf', [
     account ?? undefined,
@@ -73,24 +83,29 @@ export function useV3Positions(account: string | null | undefined): UseV3Positio
   const accountBalance: number | undefined = balanceResult?.[0]?.toNumber()
 
   const tokenIdsArgs = useMemo(() => {
-    if (accountBalance && account) {
+    if (accountBalance && hexAddr) {
       const tokenRequests = []
       for (let i = 0; i < accountBalance; i++) {
-        tokenRequests.push([account, i])
+        tokenRequests.push([hexAddr, i])
       }
       return tokenRequests
     }
     return []
-  }, [account, accountBalance])
+  }, [hexAddr, accountBalance])
 
-  const tokenIdResults = useSingleContractMultipleData(positionManager, 'tokenOfOwnerByIndex', tokenIdsArgs)
+  const tokenIdResults = useSingleContractMultipleData(
+    NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
+    NonfungiblePositionManagerAbi,
+    'tokenOfOwnerByIndex',
+    tokenIdsArgs
+  )
   const someTokenIdsLoading = useMemo(() => tokenIdResults.some(({ loading }) => loading), [tokenIdResults])
 
   const tokenIds = useMemo(() => {
     if (account) {
       return tokenIdResults
         .map(({ result }) => result)
-        .filter((result): result is CallStateResult => !!result)
+        .filter((result): result is Result => !!result)
         .map((result) => BigNumber.from(result[0]))
     }
     return []

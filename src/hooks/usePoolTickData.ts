@@ -1,21 +1,20 @@
 import { Currency } from '@uniswap/sdk-core'
 import { FeeAmount, nearestUsableTick, Pool, TICK_SPACINGS, tickToPrice } from '@uniswap/v3-sdk'
 import { useWeb3React } from '@web3-react/core'
-import { SupportedChainId } from 'constants/chains'
 import { ZERO_ADDRESS } from 'constants/misc'
 import useAllV3TicksQuery, { TickData } from 'graphql/AllV3TicksQuery'
+import { TickLensAbi } from 'hydra/contracts/abi'
 import JSBI from 'jsbi'
-import { useSingleContractMultipleData } from 'lib/hooks/multicall'
+import { useSingleContractMultipleData } from 'lib/hooks/hydraMulticall'
 import ms from 'ms.macro'
 import { useEffect, useMemo, useState } from 'react'
 import computeSurroundingTicks from 'utils/computeSurroundingTicks'
 
-import { V3_CORE_FACTORY_ADDRESSES } from '../constants/addresses'
-import { useTickLens } from './useContract'
+import { TICK_LENS_ADDRESSES, V3_CORE_FACTORY_ADDRESSES } from '../constants/addresses'
+import { useHydraChainId } from './useAddHydraAccExtension'
 import { PoolState, usePool } from './usePools'
 
 const PRICE_FIXED_DIGITS = 8
-const CHAIN_IDS_MISSING_SUBGRAPH_DATA = [SupportedChainId.ARBITRUM_ONE, SupportedChainId.ARBITRUM_RINKEBY]
 
 // Tick with fields parsed to JSBIs, and active liquidity computed.
 export interface TickProcessed {
@@ -24,8 +23,6 @@ export interface TickProcessed {
   liquidityNet: JSBI
   price0: string
 }
-
-const REFRESH_FREQUENCY = { blocksPerFetch: 2 }
 
 const getActiveTick = (tickCurrent: number | undefined, feeAmount: FeeAmount | undefined) =>
   tickCurrent && feeAmount ? Math.floor(tickCurrent / TICK_SPACINGS[feeAmount]) * TICK_SPACINGS[feeAmount] : undefined
@@ -49,8 +46,7 @@ function useTicksFromTickLens(
   // Find nearest valid tick for pool in case tick is not initialized.
   const activeTick = pool?.tickCurrent && tickSpacing ? nearestUsableTick(pool?.tickCurrent, tickSpacing) : undefined
 
-  const { chainId } = useWeb3React()
-
+  const [chainId] = useHydraChainId()
   const poolAddress =
     currencyA && currencyB && feeAmount && poolState === PoolState.EXISTS
       ? Pool.getAddress(
@@ -87,12 +83,11 @@ function useTicksFromTickLens(
     [minIndex, maxIndex, poolAddress]
   )
 
-  const tickLens = useTickLens()
   const callStates = useSingleContractMultipleData(
-    tickLensArgs.length > 0 ? tickLens : undefined,
+    tickLensArgs.length > 0 ? TICK_LENS_ADDRESSES[chainId] : undefined,
+    TickLensAbi,
     'getPopulatedTicksInWord',
-    tickLensArgs,
-    REFRESH_FREQUENCY
+    tickLensArgs
   )
 
   const isError = useMemo(() => callStates.some(({ error }) => error), [callStates])
@@ -167,7 +162,7 @@ function useAllV3Ticks(
   error: unknown
   ticks: readonly TickData[] | undefined
 } {
-  const useSubgraph = currencyA ? !CHAIN_IDS_MISSING_SUBGRAPH_DATA.includes(currencyA.chainId) : true
+  const useSubgraph = false
 
   const tickLensTickData = useTicksFromTickLens(!useSubgraph ? currencyA : undefined, currencyB, feeAmount)
   const subgraphTickData = useTicksFromSubgraph(useSubgraph ? currencyA : undefined, currencyB, feeAmount)

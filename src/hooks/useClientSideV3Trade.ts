@@ -1,15 +1,14 @@
 import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
 import { Route, SwapQuoter } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
 import { SupportedChainId } from 'constants/chains'
+import { useQuoter } from 'hydra/hooks/useContract'
 import JSBI from 'jsbi'
 import { useSingleContractWithCallData } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
 import { InterfaceTrade, TradeState } from 'state/routing/types'
 
-import { isCelo } from '../constants/tokens'
+import { useHydraChainId } from './useAddHydraAccExtension'
 import { useAllV3Routes } from './useAllV3Routes'
-import { useQuoter } from './useContract'
 
 const QUOTE_GAS_OVERRIDES: { [chainId: number]: number } = {
   [SupportedChainId.ARBITRUM_ONE]: 25_000_000,
@@ -39,9 +38,9 @@ export function useClientSideV3Trade<TTradeType extends TradeType>(
       : [otherCurrency, amountSpecified?.currency]
   const { routes, loading: routesLoading } = useAllV3Routes(currencyIn, currencyOut)
 
-  const { chainId } = useWeb3React()
+  const [chainId] = useHydraChainId()
   // Chains deployed using the deploy-v3 script only deploy QuoterV2.
-  const useQuoterV2 = useMemo(() => Boolean(chainId && isCelo(chainId)), [chainId])
+  const useQuoterV2 = useMemo(() => Boolean(chainId), [chainId])
   const quoter = useQuoter(useQuoterV2)
   const callData = useMemo(
     () =>
@@ -52,7 +51,6 @@ export function useClientSideV3Trade<TTradeType extends TradeType>(
         : [],
     [amountSpecified, routes, tradeType, useQuoterV2]
   )
-
   const quotesResults = useSingleContractWithCallData(quoter, callData, {
     gasRequired: chainId ? QUOTE_GAS_OVERRIDES[chainId] ?? DEFAULT_GAS_QUOTE : undefined,
   })

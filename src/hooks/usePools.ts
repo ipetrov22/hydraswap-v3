@@ -1,17 +1,13 @@
-import { Interface } from '@ethersproject/abi'
 import { BigintIsh, Currency, Token } from '@uniswap/sdk-core'
-import { abi as IUniswapV3PoolStateABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/pool/IUniswapV3PoolState.sol/IUniswapV3PoolState.json'
 import { computePoolAddress } from '@uniswap/v3-sdk'
 import { FeeAmount, Pool } from '@uniswap/v3-sdk'
+import { V3PoolAbi } from 'hydra/contracts/abi'
 import JSBI from 'jsbi'
-import { useMultipleContractSingleData } from 'lib/hooks/multicall'
+import { useMultipleContractSingleData } from 'lib/hooks/hydraMulticall'
 import { useMemo } from 'react'
 
 import { V3_CORE_FACTORY_ADDRESSES } from '../constants/addresses'
-import { IUniswapV3PoolStateInterface } from '../types/v3/IUniswapV3PoolState'
 import { useHydraChainId } from './useAddHydraAccExtension'
-
-const POOL_STATE_INTERFACE = new Interface(IUniswapV3PoolStateABI) as IUniswapV3PoolStateInterface
 
 // Classes are expensive to instantiate, so this caches the recently instantiated pools.
 // This avoids re-instantiating pools as the other pools in the same request are loaded.
@@ -110,8 +106,8 @@ export function usePools(
     return poolTokens.map((value) => value && PoolCache.getPoolAddress(v3CoreFactoryAddress, ...value))
   }, [chainId, poolTokens])
 
-  const slot0s = useMultipleContractSingleData(poolAddresses, POOL_STATE_INTERFACE, 'slot0')
-  const liquidities = useMultipleContractSingleData(poolAddresses, POOL_STATE_INTERFACE, 'liquidity')
+  const slot0s = useMultipleContractSingleData(poolAddresses, V3PoolAbi, 'slot0')
+  const liquidities = useMultipleContractSingleData(poolAddresses, V3PoolAbi, 'liquidity')
 
   return useMemo(() => {
     return poolKeys.map((_key, index) => {

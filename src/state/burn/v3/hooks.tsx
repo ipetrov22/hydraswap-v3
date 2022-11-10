@@ -1,8 +1,8 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent } from '@uniswap/sdk-core'
 import { Position } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
 import { useToken } from 'hooks/Tokens'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { usePool } from 'hooks/usePools'
 import { useV3PositionFees } from 'hooks/useV3PositionFees'
 import { ReactNode, useCallback, useMemo } from 'react'
@@ -30,7 +30,7 @@ export function useDerivedV3BurnInfo(
   outOfRange: boolean
   error?: ReactNode
 } {
-  const { account } = useWeb3React()
+  const [account] = useHydraWalletAddress()
   const { percent } = useBurnV3State()
 
   const token0 = useToken(position?.token0)

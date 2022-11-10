@@ -1,4 +1,4 @@
-import { Hydraweb3 } from 'hydraweb3-js'
+import { Hydraweb3 } from 'ipetrov22-hydraweb3-js'
 import { useEffect, useState } from 'react'
 
 import invoke from '../hydra/mobileInvoke/browser'
