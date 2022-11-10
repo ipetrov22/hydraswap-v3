@@ -7,7 +7,7 @@ import { ReactNode, useMemo } from 'react'
 import { useTransactionAdder } from '../state/transactions/hooks'
 import { TransactionType } from '../state/transactions/types'
 import { currencyId } from '../utils/currencyId'
-import { useHydraWalletAddress } from './useAddHydraAccExtension'
+import { useHydraHexAddress } from './useAddHydraAccExtension'
 import useENS from './useENS'
 import { SignatureData } from './useERC20Permit'
 import useTransactionDeadline from './useTransactionDeadline'
@@ -20,14 +20,14 @@ export function useSwapCallback(
   recipientAddressOrName: string | null, // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
   signatureData: SignatureData | undefined | null
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: ReactNode | null } {
-  const [account] = useHydraWalletAddress()
+  const [hexAddr] = useHydraHexAddress()
 
   const deadline = useTransactionDeadline()
 
   const addTransaction = useTransactionAdder()
 
   const { address: recipientAddress } = useENS(recipientAddressOrName)
-  const recipient = recipientAddressOrName === null ? account : recipientAddress
+  const recipient = recipientAddressOrName === null ? hexAddr : recipientAddress
 
   const {
     state,

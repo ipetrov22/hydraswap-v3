@@ -1,6 +1,6 @@
 import { Currency, CurrencyAmount, Percent, Token, TradeType } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
 import { SWAP_ROUTER_ADDRESSES } from 'constants/addresses'
+import { useHydraChainId } from 'hooks/useAddHydraAccExtension'
 import { Trade } from 'hydra-router-sdk'
 import { useMemo } from 'react'
 
@@ -15,10 +15,12 @@ export default function useSwapApproval(
   useIsPendingApproval: (token?: Token, spender?: string) => boolean,
   amount?: CurrencyAmount<Currency> // defaults to trade.maximumAmountIn(allowedSlippage)
 ) {
-  const { chainId } = useWeb3React()
+  const [chainId] = useHydraChainId()
 
   const amountToApprove = useMemo(
-    () => amount || (trade && trade.inputAmount.currency.isToken ? trade.maximumAmountIn(allowedSlippage) : undefined),
+    () =>
+      amount ||
+      (trade && trade.inputAmount.currency.wrapped.isToken ? trade.maximumAmountIn(allowedSlippage) : undefined),
     [amount, trade, allowedSlippage]
   )
   const spender = chainId ? SWAP_ROUTER_ADDRESSES[chainId] : undefined

@@ -22,6 +22,8 @@ export const MAINNET_TICK_LENS = ZERO_ADDRESS
 export const TESTNET_TICK_LENS = '0x8b1aa1b794ff9339f3ebd8e514c28e93abcb68a1'
 export const MAINNET_QUOTER = ZERO_ADDRESS
 export const TESTNET_QUOTER = '0x409c1f88cbc52443c3147e1e419ba1c1c98b951a'
+export const MAINNET_SWAP_ROUTER = ZERO_ADDRESS
+export const TESTNET_SWAP_ROUTER = '0x44bf91dbe7e35b934185d91dd31a4e61f893a1be'
 
 export const getAddressV2Factory = (chainId: ChainId | undefined) => {
   if (!chainId) return undefined
