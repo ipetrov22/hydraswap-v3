@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
 import { Trade } from 'hydra-router-sdk'
 import { SwapCallbackState, useSwapCallback as useLibSwapCallBack } from 'lib/hooks/swap/useSwapCallback'
 import { ReactNode, useMemo } from 'react'
@@ -8,6 +7,7 @@ import { ReactNode, useMemo } from 'react'
 import { useTransactionAdder } from '../state/transactions/hooks'
 import { TransactionType } from '../state/transactions/types'
 import { currencyId } from '../utils/currencyId'
+import { useHydraWalletAddress } from './useAddHydraAccExtension'
 import useENS from './useENS'
 import { SignatureData } from './useERC20Permit'
 import useTransactionDeadline from './useTransactionDeadline'
@@ -20,7 +20,7 @@ export function useSwapCallback(
   recipientAddressOrName: string | null, // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
   signatureData: SignatureData | undefined | null
 ): { state: SwapCallbackState; callback: null | (() => Promise<string>); error: ReactNode | null } {
-  const { account } = useWeb3React()
+  const [account] = useHydraWalletAddress()
 
   const deadline = useTransactionDeadline()
 

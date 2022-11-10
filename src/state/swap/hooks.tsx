@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, TradeType } from '@uniswap/sdk-core'
 import { useWeb3React } from '@web3-react/core'
-import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
+import { useHydraHexAddress, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import useAutoSlippageTolerance from 'hooks/useAutoSlippageTolerance'
 import { useBestTrade } from 'hooks/useBestTrade'
 import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
@@ -89,6 +89,7 @@ export function useDerivedSwapInfo(): {
   allowedSlippage: Percent
 } {
   const [account] = useHydraWalletAddress()
+  const [hexAddr] = useHydraHexAddress()
 
   const {
     independentField,
@@ -101,7 +102,7 @@ export function useDerivedSwapInfo(): {
   const inputCurrency = useCurrency(inputCurrencyId)
   const outputCurrency = useCurrency(outputCurrencyId)
   const recipientLookup = useENS(recipient ?? undefined)
-  const to: string | null = (recipient === null ? account : recipientLookup.address) ?? null
+  const to: string | null = (recipient === null ? hexAddr : recipientLookup.address) ?? null
 
   const relevantTokenBalances = useCurrencyBalances(
     account ?? undefined,
