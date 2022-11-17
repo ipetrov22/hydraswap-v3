@@ -1,6 +1,5 @@
 import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
 import { Route, SwapQuoter } from '@uniswap/v3-sdk'
-import { SupportedChainId } from 'constants/chains'
 import { useQuoter } from 'hydra/hooks/useContract'
 import JSBI from 'jsbi'
 import { useSingleContractWithCallData } from 'lib/hooks/multicall'
@@ -9,17 +8,6 @@ import { InterfaceTrade, TradeState } from 'state/routing/types'
 
 import { useHydraChainId } from './useAddHydraAccExtension'
 import { useAllV3Routes } from './useAllV3Routes'
-
-const QUOTE_GAS_OVERRIDES: { [chainId: number]: number } = {
-  [SupportedChainId.ARBITRUM_ONE]: 25_000_000,
-  [SupportedChainId.ARBITRUM_RINKEBY]: 25_000_000,
-  [SupportedChainId.CELO]: 50_000_000,
-  [SupportedChainId.CELO_ALFAJORES]: 50_000_000,
-  [SupportedChainId.POLYGON]: 40_000_000,
-  [SupportedChainId.POLYGON_MUMBAI]: 40_000_000,
-}
-
-const DEFAULT_GAS_QUOTE = 2_000_000
 
 /**
  * Returns the best v3 trade for a desired swap
@@ -51,9 +39,9 @@ export function useClientSideV3Trade<TTradeType extends TradeType>(
         : [],
     [amountSpecified, routes, tradeType, useQuoterV2]
   )
-  const quotesResults = useSingleContractWithCallData(quoter, callData, {
-    gasRequired: chainId ? QUOTE_GAS_OVERRIDES[chainId] ?? DEFAULT_GAS_QUOTE : undefined,
-  })
+  console.log('routes are', routes)
+  console.log('callData is', callData)
+  const quotesResults = useSingleContractWithCallData(quoter, callData)
 
   return useMemo(() => {
     if (

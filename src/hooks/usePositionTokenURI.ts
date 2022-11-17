@@ -1,7 +1,7 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
 import JSBI from 'jsbi'
-import { useSingleCallResult } from 'lib/hooks/hydraMulticall'
+import { NEVER_RELOAD, useSingleCallResult } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
 
 type TokenId = number | JSBI | BigNumber
@@ -33,7 +33,9 @@ export function usePositionTokenURI(tokenId: TokenId | undefined): UsePositionTo
     () => [tokenId instanceof BigNumber ? tokenId.toHexString() : tokenId?.toString(16)],
     [tokenId]
   )
-  const { result, error, loading, valid } = useSingleCallResult(contract, 'tokenURI', inputs)
+  const { result, error, loading, valid } = useSingleCallResult(contract, 'tokenURI', inputs, {
+    ...NEVER_RELOAD,
+  })
 
   return useMemo(() => {
     if (error || !valid || !tokenId) {

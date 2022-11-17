@@ -257,7 +257,7 @@ export default function AddLiquidity() {
         positionManager?.address, // contract address
         calldata.substring(2), // calldata hex
         hydraValue, // hydra amount
-        2500000, // gas limit
+        25000000, // gas limit
         account, // sender address
       ]
 

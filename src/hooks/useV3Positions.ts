@@ -1,13 +1,11 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { NONFUNGIBLE_POSITION_MANAGER_ADDRESSES } from 'constants/addresses'
-import { NonfungiblePositionManagerAbi } from 'hydra/contracts/abi'
 import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
-import { useSingleCallResult, useSingleContractMultipleData } from 'lib/hooks/hydraMulticall'
+import { useSingleCallResult, useSingleContractMultipleData } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
 import { Result } from 'state/hydra/hrc20calls'
 import { PositionDetails } from 'types/position'
 
-import { useHydraChainId, useHydraHexAddress } from './useAddHydraAccExtension'
+import { useHydraHexAddress } from './useAddHydraAccExtension'
 
 interface UseV3PositionsResults {
   loading: boolean
@@ -15,14 +13,10 @@ interface UseV3PositionsResults {
 }
 
 function useV3PositionsFromTokenIds(tokenIds: BigNumber[] | undefined): UseV3PositionsResults {
-  const [chainId] = useHydraChainId()
+  const positionManager = useV3NFTPositionManagerContract()
+
   const inputs = useMemo(() => (tokenIds ? tokenIds.map((tokenId) => [BigNumber.from(tokenId)]) : []), [tokenIds])
-  const results = useSingleContractMultipleData(
-    NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
-    NonfungiblePositionManagerAbi,
-    'positions',
-    inputs
-  )
+  const results = useSingleContractMultipleData(positionManager, 'positions', inputs)
   const loading = useMemo(() => results.some(({ loading }) => loading), [results])
   const error = useMemo(() => results.some(({ error }) => error), [results])
 
@@ -71,12 +65,11 @@ export function useV3PositionFromTokenId(tokenId: BigNumber | undefined): UseV3P
 }
 
 export function useV3Positions(account: string | null | undefined): UseV3PositionsResults {
-  const [chainId] = useHydraChainId()
   const positionManager = useV3NFTPositionManagerContract()
   const [hexAddr] = useHydraHexAddress()
 
   const { loading: balanceLoading, result: balanceResult } = useSingleCallResult(positionManager, 'balanceOf', [
-    account ?? undefined,
+    hexAddr ?? undefined,
   ])
 
   // we don't expect any account balance to ever exceed the bounds of max safe int
@@ -93,12 +86,7 @@ export function useV3Positions(account: string | null | undefined): UseV3Positio
     return []
   }, [hexAddr, accountBalance])
 
-  const tokenIdResults = useSingleContractMultipleData(
-    NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId],
-    NonfungiblePositionManagerAbi,
-    'tokenOfOwnerByIndex',
-    tokenIdsArgs
-  )
+  const tokenIdResults = useSingleContractMultipleData(positionManager, 'tokenOfOwnerByIndex', tokenIdsArgs)
   const someTokenIdsLoading = useMemo(() => tokenIdResults.some(({ loading }) => loading), [tokenIdResults])
 
   const tokenIds = useMemo(() => {

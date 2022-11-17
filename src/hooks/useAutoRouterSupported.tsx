@@ -1,7 +1,10 @@
-import { useWeb3React } from '@web3-react/core'
-import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
+// import { isSupportedChainId } from 'lib/hooks/routing/clientSideSmartOrderRouter'
+
+// import { useHydraChainId } from './useAddHydraAccExtension'
 
 export default function useAutoRouterSupported(): boolean {
-  const { chainId } = useWeb3React()
-  return isSupportedChainId(chainId)
+  // const [chainId] = useHydraChainId()
+  // return isSupportedChainId(chainId)
+
+  return false
 }

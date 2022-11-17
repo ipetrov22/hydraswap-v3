@@ -1,4 +1,4 @@
-import { Call, createMulticall, ListenerOptions } from '@uniswap/redux-multicall'
+import { createMulticall, ListenerOptions } from '@uniswap/redux-multicall'
 import { SupportedChainId } from 'constants/chains'
 import { useHydraChainId, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { contractCall } from 'hydra/contracts/utils'
@@ -38,7 +38,7 @@ export function MulticallUpdater() {
   const multicallContract = useMulticallContract()
   const contractMock = {
     callStatic: {
-      multicall: async (chunk: Call[]) => {
+      multicall: async (chunk: { target: string; callData: string }[]) => {
         const res = { success: false, gasUsed: 0, returnData: [{ success: false, returnData: '0x' }] }
 
         if (!multicallContract) {

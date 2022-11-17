@@ -480,15 +480,6 @@ export default function Swap() {
   ])
 
   const approveTokenButtonDisabled = approvalState !== ApprovalState.NOT_APPROVED || approvalSubmitted
-  console.log(
-    isValid,
-    routeIsSyncing,
-    routeIsLoading,
-    approvalState,
-    priceImpactTooHigh,
-    swapCallbackError,
-    priceImpactSeverity
-  )
   return (
     <Trace page={PageName.SWAP_PAGE} shouldLogImpression>
       <>

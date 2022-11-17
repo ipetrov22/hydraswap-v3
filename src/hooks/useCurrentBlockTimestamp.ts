@@ -1,6 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { useMulticallContract } from 'hydra/hooks/useContract'
-import { useSingleCallResult } from 'lib/hooks/hydraMulticall'
+import { useSingleCallResult } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
 
 // gets the current timestamp from the blockchain
