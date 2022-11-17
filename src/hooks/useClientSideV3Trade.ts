@@ -39,8 +39,7 @@ export function useClientSideV3Trade<TTradeType extends TradeType>(
         : [],
     [amountSpecified, routes, tradeType, useQuoterV2]
   )
-  console.log('routes are', routes)
-  console.log('callData is', callData)
+
   const quotesResults = useSingleContractWithCallData(quoter, callData)
 
   return useMemo(() => {

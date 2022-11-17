@@ -44,16 +44,16 @@ export function MulticallUpdater() {
         if (!multicallContract) {
           res.returnData = chunk.map(() => ({ success: false, returnData: '0x' }))
         } else {
-          const { executionResult } = await contractCall(multicallContract, 'aggregate', [chunk], account)
+          const { executionResult } = await contractCall(multicallContract, 'multicall', [chunk], account)
           if (executionResult?.excepted === 'None') {
             res.returnData = chunk.map((_, i) => ({
-              success: true,
-              returnData: `0x${executionResult.formattedOutput[1][i]}`,
+              success: executionResult.formattedOutput[1][i][0],
+              returnData: executionResult.formattedOutput[1][i][2],
             }))
           } else {
             res.returnData = chunk.map((_, i) => ({
               success: false,
-              returnData: `0x${executionResult.formattedOutput[1][i]}`,
+              returnData: executionResult.formattedOutput[1][i][2],
             }))
           }
         }
