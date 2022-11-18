@@ -50,7 +50,6 @@ import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { useHydraChainId, useHydraWalletAddress } from '../../hooks/useAddHydraAccExtension'
 import { ApprovalState, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
-import useENSAddress from '../../hooks/useENSAddress'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
 import { useStablecoinValue } from '../../hooks/useStablecoinPrice'
@@ -149,8 +148,6 @@ const formatSwapQuoteReceivedEventProperties = (
   }
 }
 
-const TRADE_STRING = 'SwapRouter'
-
 export default function Swap() {
   const [account] = useHydraWalletAddress()
   const [chainId] = useHydraChainId()
@@ -227,7 +224,6 @@ export default function Swap() {
     inputError: wrapInputError,
   } = useWrapCallback(currencies[Field.INPUT], currencies[Field.OUTPUT], typedValue)
   const showWrap: boolean = wrapType !== WrapType.NOT_APPLICABLE
-  const { address: recipientAddress } = useENSAddress(recipient)
 
   const parsedAmounts = useMemo(
     () =>
@@ -347,23 +343,6 @@ export default function Swap() {
     swapCallback()
       .then((hash) => {
         setSwapState({ attemptingTxn: false, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: hash })
-        sendEvent({
-          category: 'Swap',
-          action: 'transaction hash',
-          label: hash,
-        })
-        sendEvent({
-          category: 'Swap',
-          action:
-            recipient === null
-              ? 'Swap w/o Send'
-              : (recipientAddress ?? recipient) === account
-              ? 'Swap w/o Send + recipient'
-              : 'Swap w/ Send',
-          label: [TRADE_STRING, trade?.inputAmount?.currency?.symbol, trade?.outputAmount?.currency?.symbol, 'MH'].join(
-            '/'
-          ),
-        })
       })
       .catch((error) => {
         setSwapState({
@@ -374,17 +353,7 @@ export default function Swap() {
           txHash: undefined,
         })
       })
-  }, [
-    swapCallback,
-    stablecoinPriceImpact,
-    tradeToConfirm,
-    showConfirm,
-    recipient,
-    recipientAddress,
-    account,
-    trade?.inputAmount?.currency?.symbol,
-    trade?.outputAmount?.currency?.symbol,
-  ])
+  }, [swapCallback, stablecoinPriceImpact, tradeToConfirm, showConfirm])
 
   // errors
   const [showInverted, setShowInverted] = useState<boolean>(false)
