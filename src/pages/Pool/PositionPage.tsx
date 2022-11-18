@@ -1,12 +1,9 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Fraction, Percent, Price, Token } from '@uniswap/sdk-core'
 import { NonfungiblePositionManager, Pool, Position } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
 import { PageName } from 'components/AmplitudeAnalytics/constants'
 import { Trace } from 'components/AmplitudeAnalytics/Trace'
-import { sendEvent } from 'components/analytics'
 import Badge from 'components/Badge'
 import { ButtonConfirmed, ButtonGray, ButtonPrimary } from 'components/Button'
 import { DarkCard, LightCard } from 'components/Card'
@@ -18,13 +15,21 @@ import { RowBetween, RowFixed } from 'components/Row'
 import { Dots } from 'components/swap/styleds'
 import Toggle from 'components/Toggle'
 import TransactionConfirmationModal, { ConfirmationModalContent } from 'components/TransactionConfirmationModal'
+import { formatUnits } from 'ethers/lib/utils'
 import { useToken } from 'hooks/Tokens'
-import { useHydraChainId, useHydraHexAddress, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
+import {
+  useHydraChainId,
+  useHydraHexAddress,
+  useHydraLibrary,
+  useHydraWalletAddress,
+} from 'hooks/useAddHydraAccExtension'
 import useIsTickAtLimit from 'hooks/useIsTickAtLimit'
 import { PoolState, usePool } from 'hooks/usePools'
 import useStablecoinPrice from 'hooks/useStablecoinPrice'
 import { useV3PositionFees } from 'hooks/useV3PositionFees'
 import { useV3PositionFromTokenId } from 'hooks/useV3Positions'
+import { rawSend } from 'hydra/contracts/rawFunctions'
+import { trimHexPrefix } from 'hydra/contracts/utils'
 import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
 import { useSingleCallResult } from 'lib/hooks/multicall'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
@@ -45,7 +50,6 @@ import RateToggle from '../../components/RateToggle'
 import { SwitchLocaleLink } from '../../components/SwitchLocaleLink'
 import { usePositionTokenURI } from '../../hooks/usePositionTokenURI'
 import { TransactionType } from '../../state/transactions/types'
-import { calculateGasMargin } from '../../utils/calculateGasMargin'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { LoadingRows } from './styleds'
 
@@ -320,7 +324,7 @@ export function PositionPage() {
   const [chainId] = useHydraChainId()
   const [account] = useHydraWalletAddress()
   const [hexAddr] = useHydraHexAddress(true)
-  const { provider } = useWeb3React()
+  const [library] = useHydraLibrary()
   const theme = useTheme()
 
   const parsedTokenId = tokenIdFromUrl ? BigNumber.from(tokenIdFromUrl) : undefined
@@ -433,9 +437,9 @@ export function PositionPage() {
       !currency1ForFeeCollectionPurposes ||
       !chainId ||
       !positionManager ||
-      !account ||
+      !hexAddr ||
       !tokenId ||
-      !provider
+      !library
     )
       return
 
@@ -447,47 +451,26 @@ export function PositionPage() {
       tokenId: tokenId.toString(),
       expectedCurrencyOwed0: feeValue0 ?? CurrencyAmount.fromRawAmount(currency0ForFeeCollectionPurposes, 0),
       expectedCurrencyOwed1: feeValue1 ?? CurrencyAmount.fromRawAmount(currency1ForFeeCollectionPurposes, 0),
-      recipient: account,
+      recipient: hexAddr,
     })
+    const hydraValue = formatUnits(value, 8)
 
-    const txn = {
-      to: positionManager.address,
-      data: calldata,
-      value,
-    }
-
-    provider
-      .getSigner()
-      .estimateGas(txn)
-      .then((estimate) => {
-        const newTxn = {
-          ...txn,
-          gasLimit: calculateGasMargin(estimate),
-        }
-
-        return provider
-          .getSigner()
-          .sendTransaction(newTxn)
-          .then((response: TransactionResponse) => {
-            setCollectMigrationHash(response.hash)
-            setCollecting(false)
-
-            sendEvent({
-              category: 'Liquidity',
-              action: 'CollectV3',
-              label: [currency0ForFeeCollectionPurposes.symbol, currency1ForFeeCollectionPurposes.symbol].join('/'),
-            })
-
-            addTransaction(response, {
-              type: TransactionType.COLLECT_FEES,
-              currencyId0: currencyId(currency0ForFeeCollectionPurposes),
-              currencyId1: currencyId(currency1ForFeeCollectionPurposes),
-            })
-          })
-      })
-      .catch((error) => {
+    // TODO: gas estimation
+    rawSend(library, positionManager.address, calldata, hydraValue, account)
+      .then((tx) => {
+        tx.hash = tx.id
+        setCollectMigrationHash(tx.hash)
         setCollecting(false)
-        console.error(error)
+
+        addTransaction(tx, {
+          type: TransactionType.COLLECT_FEES,
+          currencyId0: currencyId(currency0ForFeeCollectionPurposes),
+          currencyId1: currencyId(currency1ForFeeCollectionPurposes),
+        })
+      })
+      .catch((err) => {
+        setCollecting(false)
+        console.error(err)
       })
   }, [
     chainId,
@@ -496,16 +479,17 @@ export function PositionPage() {
     currency0ForFeeCollectionPurposes,
     currency1ForFeeCollectionPurposes,
     positionManager,
+    hexAddr,
     account,
     tokenId,
     addTransaction,
-    provider,
+    library,
   ])
 
   const owner = useSingleCallResult(!!tokenId ? positionManager : null, 'ownerOf', [
     tokenId?._hex,
   ]).result?.[0]?.toLowerCase()
-  const ownsNFT = owner === hexAddr || positionDetails?.operator === hexAddr
+  const ownsNFT = trimHexPrefix(owner) === hexAddr || positionDetails?.operator === hexAddr
 
   const feeValueUpper = inverted ? feeValue0 : feeValue1
   const feeValueLower = inverted ? feeValue1 : feeValue0

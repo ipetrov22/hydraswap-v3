@@ -60,7 +60,7 @@ export function useSwapCallback({
     deadline,
     feeOptions
   )
-  console.log(swapCalls)
+
   const { callback } = useSendSwapTransaction(account, chainId, library, trade, swapCalls)
 
   const recipient = recipientAddressOrName === null ? hexAddr : recipientAddressOrName
