@@ -88,6 +88,7 @@ interface ModalProps {
   redesignFlag?: boolean
 }
 
+// workaround for modal opacity bug: "from"/"leave" hardcoded to 1
 export default function Modal({
   isOpen,
   onDismiss,
@@ -99,9 +100,9 @@ export default function Modal({
 }: ModalProps) {
   const fadeTransition = useTransition(isOpen, null, {
     config: { duration: 200 },
-    from: { opacity: 0 },
+    from: { opacity: 1 },
     enter: { opacity: 1 },
-    leave: { opacity: 0 },
+    leave: { opacity: 1 },
   })
 
   const [{ y }, set] = useSpring(() => ({ y: 0, config: { mass: 1, tension: 210, friction: 20 } }))

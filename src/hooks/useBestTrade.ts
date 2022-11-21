@@ -1,7 +1,9 @@
 import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
 import { useMemo } from 'react'
 import { InterfaceTrade, TradeState } from 'state/routing/types'
+import { isTradeBetter } from 'utils/trades'
 
+import { useClientSideV2Trade } from './useClientSideV2Trade'
 import { useClientSideV3Trade } from './useClientSideV3Trade'
 import useDebounce from './useDebounce'
 
@@ -23,15 +25,17 @@ export function useBestTrade(
     useMemo(() => [amountSpecified, otherCurrency], [amountSpecified, otherCurrency]),
     200
   )
-
   // only use client side router if routing api trade failed or is not supported
+  const bestV2Trade = useClientSideV2Trade(tradeType, debouncedAmount, debouncedOtherCurrency)
   const bestV3Trade = useClientSideV3Trade(tradeType, debouncedAmount, debouncedOtherCurrency)
+  const v2IsBetter = useMemo(() => isTradeBetter(bestV3Trade.trade, bestV2Trade.trade), [bestV3Trade, bestV2Trade])
+  const bestTrade = useMemo(() => (v2IsBetter ? bestV2Trade : bestV3Trade), [v2IsBetter, bestV2Trade, bestV3Trade])
 
   // only return gas estimate from api if routing api trade is used
   return useMemo(
     () => ({
-      ...bestV3Trade,
+      ...bestTrade,
     }),
-    [bestV3Trade]
+    [bestTrade]
   )
 }
