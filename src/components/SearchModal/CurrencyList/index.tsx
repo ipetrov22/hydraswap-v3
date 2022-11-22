@@ -6,7 +6,7 @@ import TokenSafetyIcon from 'components/TokenSafety/TokenSafetyIcon'
 import { checkWarning } from 'constants/tokenSafety'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
 import { TokenSafetyVariant, useTokenSafetyFlag } from 'featureFlags/flags/tokenSafety'
-import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import { useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { CSSProperties, MutableRefObject, useCallback, useMemo } from 'react'
 import { Check } from 'react-feather'
 import { FixedSizeList } from 'react-window'
@@ -131,7 +131,7 @@ function CurrencyRow({
   style: CSSProperties
   showCurrencyAmount?: boolean
 }) {
-  const account = accountHydra?.address
+  const [account] = useHydraWalletAddress()
   const key = currencyKey(currency)
   const selectedTokenList = useCombinedActiveList()
   const isOnSelectedList = isTokenOnList(selectedTokenList, currency.isToken ? currency : undefined)

@@ -2,7 +2,8 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Web3Provider } from '@ethersproject/providers'
 import { parseEther } from '@ethersproject/units'
 import { useWeb3React } from '@web3-react/core'
-import { useNativeCurrencyBalances } from 'state/connection/hooks'
+import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import { useHYDRABalance } from 'state/wallets/hooks'
 
 interface WalletBalanceProps {
   address: string
@@ -13,7 +14,7 @@ interface WalletBalanceProps {
 
 export function useWalletBalance(): WalletBalanceProps {
   const { account: address, provider } = useWeb3React()
-  const balanceString = useNativeCurrencyBalances(address ? [address] : [])?.[address ?? '']?.toSignificant(3) || '0'
+  const balanceString = useHYDRABalance(accountHydra)?.[address ?? '']?.toSignificant(3) ?? ''
 
   return address == null
     ? {
