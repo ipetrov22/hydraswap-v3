@@ -24,7 +24,6 @@ import {
 import styled from 'styled-components/macro'
 import { ExternalLink, ThemedText } from 'theme'
 
-import { CreateProposalTabs } from '../../components/NavigationTabs'
 import { LATEST_GOVERNOR_INDEX } from '../../constants/governance'
 import { UNI } from '../../constants/tokens'
 import AppBody from '../AppBody'
@@ -236,7 +235,6 @@ ${bodyValue}
     <Trace page={PageName.VOTE_PAGE} shouldLogImpression>
       <PageWrapper>
         <AppBody {...{ maxWidth: '800px' }}>
-          <CreateProposalTabs />
           <CreateProposalWrapper>
             <BlueCard>
               <AutoColumn gap="10px">

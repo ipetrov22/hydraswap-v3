@@ -3,14 +3,7 @@ import { PrivacyPolicyModal } from 'components/PrivacyPolicy'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import { Box } from 'nft/components/Box'
 import { Column, Row } from 'nft/components/Flex'
-import {
-  BarChartIcon,
-  DiscordIconMenu,
-  EllipsisIcon,
-  GithubIconMenu,
-  GovernanceIcon,
-  TwitterIconMenu,
-} from 'nft/components/icons'
+import { BarChartIcon, DiscordIconMenu, EllipsisIcon, GithubIconMenu, TwitterIconMenu } from 'nft/components/icons'
 import { body, bodySmall } from 'nft/css/common.css'
 import { themeVars } from 'nft/css/sprinkles.css'
 import { ReactNode, useReducer, useRef } from 'react'
@@ -129,12 +122,6 @@ export const MenuDropdown = () => {
           <NavDropdown top={60}>
             <Column gap="12">
               <Column paddingX="16" gap="4">
-                <PrimaryMenuRow to="/vote" close={toggleOpen}>
-                  <Icon>
-                    <GovernanceIcon width={24} height={24} />
-                  </Icon>
-                  <PrimaryMenuRow.Text>Vote in governance</PrimaryMenuRow.Text>
-                </PrimaryMenuRow>
                 <PrimaryMenuRow href="https://info.hydradex.org/">
                   <Icon>
                     <BarChartIcon width={24} height={24} />

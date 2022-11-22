@@ -10,7 +10,6 @@ import {
   CloseIcon,
   DiscordIconMenuMobile,
   GithubIconMenuMobile,
-  GovernanceIconMobile,
   HamburgerIcon,
   TwitterIconMenuMobile,
 } from 'nft/components/icons'
@@ -175,12 +174,6 @@ export const MobileSideBar = () => {
               </Column>
               <Seperator />
               <Column gap="4">
-                <ExtraLinkRow to="/vote" close={toggleOpen}>
-                  <Icon>
-                    <GovernanceIconMobile width={24} height={24} />
-                  </Icon>
-                  Vote in governance
-                </ExtraLinkRow>
                 <ExtraLinkRow href="https://info.hydradex.org/" close={toggleOpen}>
                   <Icon>
                     <BarChartIconMobile width={24} height={24} />
