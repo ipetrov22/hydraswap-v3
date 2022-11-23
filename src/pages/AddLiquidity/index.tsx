@@ -219,7 +219,7 @@ export default function AddLiquidity() {
     parsedAmounts[Field.CURRENCY_A],
     chainId ? NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId] : undefined
   )
-  console.log(approvalA)
+
   const [approvalB, approveBCallback] = useApproveCallback(
     parsedAmounts[Field.CURRENCY_B],
     chainId ? NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId] : undefined
