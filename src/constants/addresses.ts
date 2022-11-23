@@ -2,6 +2,7 @@ import {
   MAINNET_MULTICALL,
   MAINNET_NONFUNGIBLE_POSITION_MANAGER,
   MAINNET_QUOTER,
+  MAINNET_SWAP_ROUTER,
   MAINNET_TICK_LENS,
   MAINNET_V2_FACTORY,
   MAINNET_V2_ROUTER,
@@ -10,6 +11,7 @@ import {
   TESTNET_MULTICALL,
   TESTNET_NONFUNGIBLE_POSITION_MANAGER,
   TESTNET_QUOTER,
+  TESTNET_SWAP_ROUTER,
   TESTNET_TICK_LENS,
   TESTNET_V2_FACTORY,
   TESTNET_V2_ROUTER,
@@ -36,9 +38,6 @@ export const V2_ROUTER_ADDRESSES: AddressMap = {
 }
 // ** HYDRA CONTRACTS **
 
-// celo v3 addresses
-const CELO_ROUTER_ADDRESS = '0x5615CDAb10dc425a742d643d949a7F474C01abc4'
-
 /* V3 Contract Addresses */
 export const V3_CORE_FACTORY_ADDRESSES: AddressMap = {
   [SupportedChainId.MAINNET]: MAINNET_V3_FACTORY,
@@ -56,16 +55,8 @@ export const MULTICALL_ADDRESSES: AddressMap = {
 }
 
 export const SWAP_ROUTER_ADDRESSES: AddressMap = {
-  ...constructSameAddressMap('0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45', [
-    SupportedChainId.OPTIMISM,
-    SupportedChainId.OPTIMISTIC_KOVAN,
-    SupportedChainId.ARBITRUM_ONE,
-    SupportedChainId.ARBITRUM_RINKEBY,
-    SupportedChainId.POLYGON,
-    SupportedChainId.POLYGON_MUMBAI,
-  ]),
-  [SupportedChainId.CELO]: CELO_ROUTER_ADDRESS,
-  [SupportedChainId.CELO_ALFAJORES]: CELO_ROUTER_ADDRESS,
+  [SupportedChainId.MAINNET]: MAINNET_SWAP_ROUTER,
+  [SupportedChainId.TESTNET]: TESTNET_SWAP_ROUTER,
 }
 
 /**

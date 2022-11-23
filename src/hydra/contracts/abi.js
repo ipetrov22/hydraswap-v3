@@ -8,6 +8,7 @@ import AbiQuoter from './abis/quoter.json'
 import AbiQuoterV2 from './abis/quoter_v2.json'
 import TickLensAbi from './abis/tick_lens.json'
 import AbiToken from './abis/token.json'
+import UniMulticallAbi from './abis/uniswap_multicall.json'
 import V3MigratorAbi from './abis/v3_migrator.json'
 import V3PoolAbi from './abis/v3_pool.json'
 import AbiWrappedHydra from './abis/whydra.json'
@@ -24,6 +25,7 @@ export {
   MulticallAbi,
   NonfungiblePositionManagerAbi,
   TickLensAbi,
+  UniMulticallAbi,
   V3MigratorAbi,
   V3PoolAbi,
 }

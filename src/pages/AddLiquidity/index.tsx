@@ -219,6 +219,7 @@ export default function AddLiquidity() {
     parsedAmounts[Field.CURRENCY_A],
     chainId ? NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId] : undefined
   )
+
   const [approvalB, approveBCallback] = useApproveCallback(
     parsedAmounts[Field.CURRENCY_B],
     chainId ? NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId] : undefined
@@ -235,7 +236,7 @@ export default function AddLiquidity() {
       return
     }
 
-    if (position && account && deadline) {
+    if (position && account && deadline && hexAddr) {
       const useNative = baseCurrency.isNative ? baseCurrency : quoteCurrency.isNative ? quoteCurrency : undefined
       const { calldata, value } =
         hasExistingPosition && tokenId
@@ -257,7 +258,7 @@ export default function AddLiquidity() {
         positionManager?.address, // contract address
         calldata.substring(2), // calldata hex
         hydraValue, // hydra amount
-        2500000, // gas limit
+        25000000, // gas limit
         account, // sender address
       ]
 

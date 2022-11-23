@@ -146,19 +146,19 @@ function oldColors(darkMode: boolean): Colors {
     deprecated_advancedBG: darkMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.6)',
 
     //primary colors
-    deprecated_primary1: darkMode ? '#2172E5' : '#E8006F',
+    deprecated_primary1: darkMode ? '#2172E5' : '#026fc2',
     deprecated_primary2: darkMode ? '#3680E7' : '#FF8CC3',
     deprecated_primary3: darkMode ? '#4D8FEA' : '#FF99C9',
     deprecated_primary4: darkMode ? '#376bad70' : '#F6DDE8',
-    deprecated_primary5: darkMode ? '#153d6f70' : '#FDEAF1',
+    deprecated_primary5: darkMode ? '#153d6f70' : '#e1f2ff',
 
     // color text
-    deprecated_primaryText1: darkMode ? '#5090ea' : '#D50066',
+    deprecated_primaryText1: darkMode ? '#5090ea' : '#026fc2',
 
     // secondary colors
-    deprecated_secondary1: darkMode ? '#2172E5' : '#E8006F',
+    deprecated_secondary1: darkMode ? '#2172E5' : '#026fc2',
     deprecated_secondary2: darkMode ? '#17000b26' : '#F6DDE8',
-    deprecated_secondary3: darkMode ? '#17000b26' : '#FDEAF1',
+    deprecated_secondary3: darkMode ? '#17000b26' : '#e1f2ff',
 
     // other
     deprecated_red1: darkMode ? '#FF4343' : '#DA2D2B',
@@ -211,7 +211,7 @@ function oldColorsUpdated(darkMode: boolean): Colors {
     deprecated_primary2: darkMode ? ColorsPalette.blue400 : ColorsPalette.pink300,
     deprecated_primary3: darkMode ? ColorsPalette.blue300 : ColorsPalette.pink200,
     deprecated_primary4: darkMode ? '#376bad70' : '#F6DDE8',
-    deprecated_primary5: darkMode ? '#153d6f70' : '#FDEAF1',
+    deprecated_primary5: darkMode ? '#153d6f70' : '#e1f2ff',
 
     // color text
     deprecated_primaryText1: darkMode ? colorsDark.accentAction : colorsLight.accentAction,
@@ -219,7 +219,7 @@ function oldColorsUpdated(darkMode: boolean): Colors {
     // secondary colors
     deprecated_secondary1: darkMode ? colorsDark.accentAction : colorsLight.accentAction,
     deprecated_secondary2: darkMode ? opacify(25, ColorsPalette.gray900) : '#F6DDE8',
-    deprecated_secondary3: darkMode ? opacify(25, ColorsPalette.gray900) : '#FDEAF1',
+    deprecated_secondary3: darkMode ? opacify(25, ColorsPalette.gray900) : '#e1f2ff',
 
     // other
     deprecated_red1: darkMode ? colorsDark.accentFailure : colorsLight.accentFailure,

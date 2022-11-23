@@ -64,7 +64,7 @@ export function useHydraWalletAddress() {
     setAddr(account?.address)
   }, [account])
 
-  return [addr]
+  return [addr || undefined]
 }
 
 export function useHydraHexAddress(noPrefix?: boolean | undefined) {

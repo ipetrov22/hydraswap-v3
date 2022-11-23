@@ -9,10 +9,9 @@ import { Phase1Variant, usePhase1Flag } from 'featureFlags/flags/phase1'
 import { TokensVariant, useTokensFlag } from 'featureFlags/flags/tokens'
 import ApeModeQueryParamReader from 'hooks/useApeModeQueryParamReader'
 import { lazy, Suspense, useEffect } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { useIsDarkMode } from 'state/user/hooks'
 import styled from 'styled-components/macro'
-import { SpinnerSVG } from 'theme/components'
 import { getBrowser } from 'utils/browser'
 import { getCLS, getFCP, getFID, getLCP, Metric } from 'web-vitals'
 
@@ -42,7 +41,6 @@ import { OpenClaimAddressModalAndRedirectToSwap, RedirectPathToSwapOnly, Redirec
 import Tokens from './Tokens'
 
 const TokenDetails = lazy(() => import('./TokenDetails'))
-const Vote = lazy(() => import('./Vote'))
 const Collection = lazy(() => import('nft/pages/collection'))
 
 const AppWrapper = styled.div`
@@ -80,8 +78,6 @@ function getCurrentPageFromLocation(locationPathname: string): PageName | undefi
   switch (locationPathname) {
     case '/swap':
       return PageName.SWAP_PAGE
-    case '/vote':
-      return PageName.VOTE_PAGE
     case '/pool':
       return PageName.POOL_PAGE
     case '/tokens':
@@ -90,20 +86,6 @@ function getCurrentPageFromLocation(locationPathname: string): PageName | undefi
       return undefined
   }
 }
-
-// this is the same svg defined in assets/images/blue-loader.svg
-// it is defined here because the remote asset may not have had time to load when this file is executing
-const LazyLoadSpinner = () => (
-  <SpinnerSVG width="94" height="94" viewBox="0 0 94 94" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M92 47C92 22.1472 71.8528 2 47 2C22.1472 2 2 22.1472 2 47C2 71.8528 22.1472 92 47 92"
-      stroke="#2172E5"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </SpinnerSVG>
-)
 
 export default function App() {
   const isLoaded = useFeatureFlagsIsLoaded()
@@ -162,15 +144,6 @@ export default function App() {
                       <Route path="/tokens/:tokenAddress" element={<TokenDetails />} />
                     </>
                   )}
-                  <Route
-                    path="vote/*"
-                    element={
-                      <Suspense fallback={<LazyLoadSpinner />}>
-                        <Vote />
-                      </Suspense>
-                    }
-                  />
-                  <Route path="create-proposal" element={<Navigate to="/vote/create-proposal" replace />} />
                   <Route path="claim" element={<OpenClaimAddressModalAndRedirectToSwap />} />
                   <Route path="uni" element={<Earn />} />
                   <Route path="uni/:currencyIdA/:currencyIdB" element={<Manage />} />

@@ -3,14 +3,14 @@ import { FeeAmount, nearestUsableTick, Pool, TICK_SPACINGS, tickToPrice } from '
 import { useWeb3React } from '@web3-react/core'
 import { ZERO_ADDRESS } from 'constants/misc'
 import useAllV3TicksQuery, { TickData } from 'graphql/AllV3TicksQuery'
-import { TickLensAbi } from 'hydra/contracts/abi'
+import { useTickLens } from 'hydra/hooks/useContract'
 import JSBI from 'jsbi'
-import { useSingleContractMultipleData } from 'lib/hooks/hydraMulticall'
+import { useSingleContractMultipleData } from 'lib/hooks/multicall'
 import ms from 'ms.macro'
 import { useEffect, useMemo, useState } from 'react'
 import computeSurroundingTicks from 'utils/computeSurroundingTicks'
 
-import { TICK_LENS_ADDRESSES, V3_CORE_FACTORY_ADDRESSES } from '../constants/addresses'
+import { V3_CORE_FACTORY_ADDRESSES } from '../constants/addresses'
 import { useHydraChainId } from './useAddHydraAccExtension'
 import { PoolState, usePool } from './usePools'
 
@@ -83,9 +83,9 @@ function useTicksFromTickLens(
     [minIndex, maxIndex, poolAddress]
   )
 
+  const tickLens = useTickLens()
   const callStates = useSingleContractMultipleData(
-    tickLensArgs.length > 0 ? TICK_LENS_ADDRESSES[chainId] : undefined,
-    TickLensAbi,
+    tickLensArgs.length > 0 ? tickLens : undefined,
     'getPopulatedTicksInWord',
     tickLensArgs
   )

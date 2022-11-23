@@ -1,13 +1,12 @@
 import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
 import { ElementName, Event, EventName } from 'components/AmplitudeAnalytics/constants'
 import { TraceEvent } from 'components/AmplitudeAnalytics/TraceEvent'
 import { AutoColumn } from 'components/Column'
 import { LoadingOpacityContainer, loadingOpacityMixin } from 'components/Loader/styled'
 import { isSupportedChain } from 'constants/chains'
 import { RedesignVariant, useRedesignFlag } from 'featureFlags/flags/redesign'
-import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import { useHydraChainId, useHydraWalletAddress } from 'hooks/useAddHydraAccExtension'
 import { Pair } from 'hydra-v2-sdk'
 import { darken } from 'polished'
 import { ReactNode, useCallback, useState } from 'react'
@@ -266,8 +265,8 @@ export default function CurrencyInputPanel({
   ...rest
 }: CurrencyInputPanelProps) {
   const [modalOpen, setModalOpen] = useState(false)
-  const account = accountHydra?.address
-  const { chainId } = useWeb3React()
+  const [account] = useHydraWalletAddress()
+  const [chainId] = useHydraChainId()
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
   const selectedCurrencyBalance = useCurrencyBalance(account ?? undefined, currency ?? undefined)

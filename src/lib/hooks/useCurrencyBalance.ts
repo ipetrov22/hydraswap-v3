@@ -1,14 +1,15 @@
 import { Currency, CurrencyAmount, Token } from '@uniswap/sdk-core'
-import { useWeb3React } from '@web3-react/core'
-import { account as accountHydra } from 'hooks/useAddHydraAccExtension'
+import { Interface } from 'ethers/lib/utils'
+import { account as accountHydra, useHydraChainId, useHydraHexAddress } from 'hooks/useAddHydraAccExtension'
+import { AbiToken } from 'hydra/contracts/abi'
+import { useMulticallContract } from 'hydra/hooks/useContract'
 import JSBI from 'jsbi'
-import { useSingleContractMultipleData } from 'lib/hooks/multicall'
+import { useMultipleContractSingleData, useSingleContractMultipleData } from 'lib/hooks/multicall'
 import { useMemo } from 'react'
-import { useBalancesOf, usePairBalancesOf } from 'state/hydra/hrc20calls'
+import { usePairBalancesOf } from 'state/hydra/hrc20calls'
 import { useHYDRABalance } from 'state/wallets/hooks'
 
 import { nativeOnChain } from '../../constants/tokens'
-import { useInterfaceMulticall } from '../../hooks/useContract'
 import { isAddress } from '../../utils'
 
 /**
@@ -17,8 +18,8 @@ import { isAddress } from '../../utils'
 export function useNativeCurrencyBalances(uncheckedAddresses?: (string | undefined)[]): {
   [address: string]: CurrencyAmount<Currency> | undefined
 } {
-  const { chainId } = useWeb3React()
-  const multicallContract = useInterfaceMulticall()
+  const [chainId] = useHydraChainId()
+  const multicallContract = useMulticallContract()
 
   const validAddressInputs: [string][] = useMemo(
     () =>
@@ -46,6 +47,9 @@ export function useNativeCurrencyBalances(uncheckedAddresses?: (string | undefin
   )
 }
 
+const ERC20Interface = new Interface(AbiToken)
+const tokenBalancesGasRequirement = { gasRequired: 185_000 }
+
 /**
  * Returns a map of token addresses to their eventually consistent token balances for a single account.
  */
@@ -53,15 +57,22 @@ export function useTokenBalancesWithLoadingIndicator(
   address?: string,
   tokens?: (Token | undefined)[]
 ): [{ [tokenAddress: string]: CurrencyAmount<Token> | undefined }, boolean] {
+  const [chainId] = useHydraChainId()
+  const [hexAddr] = useHydraHexAddress()
   const validatedTokens: Token[] = useMemo(
-    () => tokens?.filter((t?: Token): t is Token => isAddress(t?.address) !== false) ?? [],
-    [tokens]
+    () => tokens?.filter((t?: Token): t is Token => isAddress(t?.address) !== false && t?.chainId === chainId) ?? [],
+    [chainId, tokens]
   )
-  const validatedTokenAddresses = useMemo(
-    () => validatedTokens.map((vt) => vt.address?.toLowerCase()),
-    [validatedTokens]
+  const validatedTokenAddresses = useMemo(() => validatedTokens.map((vt) => vt.address), [validatedTokens])
+
+  const balances = useMultipleContractSingleData(
+    validatedTokenAddresses,
+    ERC20Interface,
+    'balanceOf',
+    useMemo(() => [hexAddr], [hexAddr]),
+    tokenBalancesGasRequirement
   )
-  const balances = useBalancesOf(validatedTokenAddresses)
+
   const anyLoading: boolean = useMemo(() => balances.some((callState) => callState.loading), [balances])
 
   return useMemo(
@@ -170,5 +181,5 @@ export default function useCurrencyBalance(
 }
 
 export function useCurrencyBalanceString(account: string): string {
-  return useNativeCurrencyBalances(account ? [account] : [])?.[account ?? '']?.toSignificant(3) ?? ''
+  return useHYDRABalance(accountHydra)?.[account ?? '']?.toSignificant(3) ?? ''
 }

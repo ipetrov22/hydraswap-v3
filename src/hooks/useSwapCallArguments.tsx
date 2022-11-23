@@ -1,13 +1,11 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { FeeOptions } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
 import { SWAP_ROUTER_ADDRESSES } from 'constants/addresses'
 import { SwapRouter, Trade } from 'hydra-router-sdk'
 import { useMemo } from 'react'
-import approveAmountCalldata from 'utils/approveAmountCalldata'
 
-import { useArgentWalletContract } from './useArgentWalletContract'
+import { useHydraAccount, useHydraChainId, useHydraHexAddress, useHydraLibrary } from './useAddHydraAccExtension'
 import useENS from './useENS'
 import { SignatureData } from './useERC20Permit'
 
@@ -32,14 +30,16 @@ export function useSwapCallArguments(
   deadline: BigNumber | undefined,
   feeOptions: FeeOptions | undefined
 ): SwapCall[] {
-  const { account, chainId, provider } = useWeb3React()
+  const [account] = useHydraAccount()
+  const [hexAddr] = useHydraHexAddress()
+  const [chainId] = useHydraChainId()
+  const [library] = useHydraLibrary()
 
   const { address: recipientAddress } = useENS(recipientAddressOrName)
-  const recipient = recipientAddressOrName === null ? account : recipientAddress
-  const argentWalletContract = useArgentWalletContract()
+  const recipient = recipientAddressOrName === null ? hexAddr : recipientAddress
 
   return useMemo(() => {
-    if (!trade || !recipient || !provider || !account || !chainId || !deadline) return []
+    if (!trade || !recipient || !library || !account || !chainId || !deadline) return []
 
     const swapRouterAddress = chainId ? SWAP_ROUTER_ADDRESSES[chainId] : undefined
     if (!swapRouterAddress) return []
@@ -72,24 +72,6 @@ export function useSwapCallArguments(
       deadlineOrPreviousBlockhash: deadline.toString(),
     })
 
-    if (argentWalletContract && trade.inputAmount.currency.isToken) {
-      return [
-        {
-          address: argentWalletContract.address,
-          calldata: argentWalletContract.interface.encodeFunctionData('wc_multiCall', [
-            [
-              approveAmountCalldata(trade.maximumAmountIn(allowedSlippage), swapRouterAddress),
-              {
-                to: swapRouterAddress,
-                value,
-                data: calldata,
-              },
-            ],
-          ]),
-          value: '0x0',
-        },
-      ]
-    }
     return [
       {
         address: swapRouterAddress,
@@ -97,16 +79,5 @@ export function useSwapCallArguments(
         value,
       },
     ]
-  }, [
-    account,
-    allowedSlippage,
-    argentWalletContract,
-    chainId,
-    deadline,
-    feeOptions,
-    provider,
-    recipient,
-    signatureData,
-    trade,
-  ])
+  }, [account, allowedSlippage, chainId, deadline, feeOptions, library, recipient, signatureData, trade])
 }

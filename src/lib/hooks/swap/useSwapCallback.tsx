@@ -4,8 +4,12 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { FeeOptions } from '@uniswap/v3-sdk'
-import { useWeb3React } from '@web3-react/core'
-import useENS from 'hooks/useENS'
+import {
+  useHydraChainId,
+  useHydraHexAddress,
+  useHydraLibrary,
+  useHydraWalletAddress,
+} from 'hooks/useAddHydraAccExtension'
 import { SignatureData } from 'hooks/useERC20Permit'
 import { useSwapCallArguments } from 'hooks/useSwapCallArguments'
 import { Trade } from 'hydra-router-sdk'
@@ -43,7 +47,10 @@ export function useSwapCallback({
   deadline,
   feeOptions,
 }: UseSwapCallbackArgs): UseSwapCallbackReturns {
-  const { account, chainId, provider } = useWeb3React()
+  const [account] = useHydraWalletAddress()
+  const [hexAddr] = useHydraHexAddress()
+  const [chainId] = useHydraChainId()
+  const [library] = useHydraLibrary()
 
   const swapCalls = useSwapCallArguments(
     trade,
@@ -53,13 +60,13 @@ export function useSwapCallback({
     deadline,
     feeOptions
   )
-  const { callback } = useSendSwapTransaction(account, chainId, provider, trade, swapCalls)
 
-  const { address: recipientAddress } = useENS(recipientAddressOrName)
-  const recipient = recipientAddressOrName === null ? account : recipientAddress
+  const { callback } = useSendSwapTransaction(account, chainId, library, trade, swapCalls)
+
+  const recipient = recipientAddressOrName === null ? hexAddr : recipientAddressOrName
 
   return useMemo(() => {
-    if (!trade || !provider || !account || !chainId || !callback) {
+    if (!trade || !library || !account || !chainId || !callback) {
       return { state: SwapCallbackState.INVALID, error: <Trans>Missing dependencies</Trans> }
     }
     if (!recipient) {
@@ -74,5 +81,5 @@ export function useSwapCallback({
       state: SwapCallbackState.VALID,
       callback: async () => callback(),
     }
-  }, [trade, provider, account, chainId, callback, recipient, recipientAddressOrName])
+  }, [trade, library, account, chainId, callback, recipient, recipientAddressOrName])
 }

@@ -3,6 +3,13 @@ import { base58 } from 'ethers/lib/utils'
 import { MulticallAbi } from './abi'
 import { TESTNET_MULTICALL } from './contractAddresses'
 
+export const trimHexPrefix = (hex) => {
+  if (hex?.startsWith('0x')) {
+    return hex.substring(2)
+  }
+  return hex
+}
+
 export const hydraToHexAddress = (address, noPrefix) => {
   const hex = Buffer.from(base58.decode(address)).toString('hex').substring(2, 42)
   return noPrefix ? hex : '0x' + hex

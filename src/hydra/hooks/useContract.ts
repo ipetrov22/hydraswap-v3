@@ -11,9 +11,9 @@ import {
   AbiHydraV2Pair,
   AbiQuoter,
   AbiQuoterV2,
-  MulticallAbi,
   NonfungiblePositionManagerAbi,
   TickLensAbi,
+  UniMulticallAbi,
   V3MigratorAbi,
 } from 'hydra/contracts/abi'
 import { getContract } from 'hydra/contracts/utils'
@@ -49,7 +49,7 @@ export function useV3NFTPositionManagerContract() {
 
 export function useMulticallContract() {
   const [chainId] = useHydraChainId()
-  const contract = useContract(MULTICALL_ADDRESSES[chainId], MulticallAbi)
+  const contract = useContract(MULTICALL_ADDRESSES[chainId], UniMulticallAbi)
   return contract
 }
 

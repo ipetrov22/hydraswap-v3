@@ -3,7 +3,7 @@ import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Pool } from '@uniswap/v3-sdk'
 import { callCollect } from 'hydra/contracts/positionManagerFunctions'
 import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
-import { useSingleCallResult } from 'lib/hooks/hydraMulticall'
+import { useSingleCallResult } from 'lib/hooks/multicall'
 import useBlockNumber from 'lib/hooks/useBlockNumber'
 import { useEffect, useState } from 'react'
 import { unwrappedToken } from 'utils/unwrappedToken'
@@ -28,9 +28,9 @@ export function useV3PositionFees(
   const [amounts, setAmounts] = useState<[BigNumber, BigNumber] | undefined>()
   useEffect(() => {
     if (positionManager && tokenIdHexString && owner) {
-      callCollect(positionManager, owner.toLowerCase(), {
+      callCollect(positionManager, owner.toLowerCase()?.substring(2), {
         tokenId: tokenIdHexString,
-        recipient: owner, // some tokens might fail if transferred to address(0)
+        recipient: owner?.substring(2), // some tokens might fail if transferred to address(0)
         amount0Max: MAX_UINT128?._hex,
         amount1Max: MAX_UINT128?._hex,
       })
