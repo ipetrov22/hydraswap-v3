@@ -141,7 +141,7 @@ function Remove({ tokenId }: { tokenId: BigNumber }) {
       positionManager?.address, // contract address
       calldata.substring(2), // calldata hex
       hydraValue, // hydra amount
-      2500000, // gas limit
+      250000, // gas limit
       account, // sender address
     ]
 
