@@ -10,3 +10,12 @@ export const rawSend = async (library, address, data, amountHydra, senderAddress
   ])
   return tx
 }
+
+export const rawCall = async (library, address, data, senderAddress) => {
+  const tx = await library?.provider?.rawCall('callcontract', [
+    trimHexPrefix(address),
+    trimHexPrefix(data),
+    senderAddress,
+  ])
+  return tx
+}

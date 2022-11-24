@@ -5,6 +5,7 @@ import { FeeAmount, NonfungiblePositionManager } from '@uniswap/v3-sdk'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { formatUnits } from 'ethers/lib/utils'
 import useParsedQueryString from 'hooks/useParsedQueryString'
+import { rawCall } from 'hydra/contracts/rawFunctions'
 import { useV3NFTPositionManagerContract } from 'hydra/hooks/useContract'
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle } from 'react-feather'
@@ -224,7 +225,7 @@ export default function AddLiquidity() {
     parsedAmounts[Field.CURRENCY_B],
     chainId ? NONFUNGIBLE_POSITION_MANAGER_ADDRESSES[chainId] : undefined
   )
-
+  console.log(approvalA, approvalB)
   const allowedSlippage = useUserSlippageToleranceWithDefault(
     outOfRange ? ZERO_PERCENT : DEFAULT_ADD_IN_RANGE_SLIPPAGE_TOLERANCE
   )
@@ -261,6 +262,9 @@ export default function AddLiquidity() {
         noLiquidity ? 5300000 : 550000, // gas limit
         account, // sender address
       ]
+
+      const tx = await rawCall(library, positionManager?.address, calldata.substring(2), account)
+      console.log(tx)
 
       setAttemptingTxn(true)
       positionManager?.provider
